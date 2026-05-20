@@ -1,0 +1,20 @@
+1. await-> use this if the next line of code is dependant on this value.
+2. then-> this is used to keep executing the code without waiting.
+3. Parallel Execution (Waiting for multiple tasks together)If you have multiple independent futures, you can kick them all off without await first, and then wait for all of them to finish at the same time using Future.wait().dartFuture<void> loadData() async {
+  // Both tasks start executing at the exact same time
+  Future<String> profileFuture = fetchProfile();
+  Future<List> ordersFuture = fetchOrders();
+
+  // Wait for both to finish together
+  final results = await Future.wait([profileFuture, ordersFuture]);
+  
+  var profile = results[0];
+  var orders = results[1];
+}
+4. Omit await (or use .then()) if you want the code to keep running without pausing.
+
+
+5. Shell Navigation architecture-> basically nav bar(technical term).
+6. 
+
+
