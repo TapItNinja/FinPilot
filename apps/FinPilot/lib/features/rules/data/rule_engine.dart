@@ -9,7 +9,7 @@
 // It does NOT fetch rules from Hive itself — the caller (RuleEngineService)
 // is responsible for loading rules and passing them in.
 // This separation means RuleEngine can be tested with a simple in-memory list.
-
+//lib/features/rules/data/rule_engine.dart
 import '../../transactions/domain/entities/transaction_entity.dart';
 import '../domain/tag_rule_entity.dart';
 

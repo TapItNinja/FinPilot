@@ -10,7 +10,7 @@
 //
 // This follows the same pattern as TransactionLocalDataSource —
 // a dedicated datasource class per feature, injected via Riverpod.
-
+//lib/features/rules/data/rule_engine_service.dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 

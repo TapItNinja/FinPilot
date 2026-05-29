@@ -7,7 +7,7 @@
 //
 // Kept separate from TransactionEntity because rules are a different
 // concept — they're configuration, not financial data.
-
+//lib/features/rules/domain/tag_rule_entity.dart
 class TagRuleEntity {
   // Unique identifier for this rule.
   // We use a String ID (not int) because we'll generate it with

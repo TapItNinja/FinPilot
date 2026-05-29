@@ -1,81 +1,83 @@
+// lib/features/transactions/data/repositories/transaction_repository.dart
+import 'package:flutter/foundation.dart';
 import '../datasources/transaction_local_datasource.dart';
 import '../../domain/entities/transaction_entity.dart';
+import '../../../rules/data/rule_engine_service.dart';
 
 class TransactionRepository {
   final TransactionLocalDataSource localDataSource;
+  final RuleEngineService ruleEngineService;
 
-  TransactionRepository(this.localDataSource);
+  TransactionRepository(this.localDataSource, this.ruleEngineService);
 
   Future<List<TransactionEntity>> getTransactions() async {
-    final cachedTransactions = await localDataSource.getCachedTransactions();
+    final cached = await localDataSource.getCachedTransactions();
+    if (cached.isNotEmpty) {
+      _refreshInBackground();
+      return cached;
+    }
+    // No dummy data — app starts empty, user adds via manual entry or PDF import
+    return [];
+  }
 
-    if (cachedTransactions.isNotEmpty) {
-      _refreshTransactionsInBackground();
+  Future<List<TransactionEntity>> importTransactions(
+    List<TransactionEntity> rawTransactions,
+  ) async {
+    final tagged = await ruleEngineService.applyRulesToAll(rawTransactions);
+    final existing = await localDataSource.getCachedTransactions();
+    final existingIds = existing.map((t) => t.id).toSet();
+    final newOnly = tagged.where((t) => !existingIds.contains(t.id)).toList();
 
-      return cachedTransactions;
+    if (newOnly.isEmpty) {
+      return existing;
     }
 
-    final remoteTransactions = await _fetchRemoteTransactions();
-
-    await localDataSource.cacheTransactions(remoteTransactions);
-
-    return remoteTransactions;
+    final merged = [...existing, ...newOnly]
+      ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    await localDataSource.cacheTransactions(merged);
+    return merged;
   }
 
-  Future<void> _refreshTransactionsInBackground() async {
-    final remoteTransactions = await _fetchRemoteTransactions();
-
-    await localDataSource.cacheTransactions(remoteTransactions);
+  Future<(TransactionEntity, bool)> addSingleTransaction(
+    TransactionEntity raw,
+  ) async {
+    final tagged = await ruleEngineService.applyRulesTo(raw);
+    final isEmi = await ruleEngineService.isEmiCandidate(tagged);
+    final existing = await localDataSource.getCachedTransactions();
+    await localDataSource.cacheTransactions([tagged, ...existing]);
+    return (tagged, isEmi);
   }
 
-  Future<List<TransactionEntity>> _fetchRemoteTransactions() async {
-    await Future.delayed(const Duration(seconds: 1));
+  Future<void> updateTransaction(TransactionEntity updated) async {
+    final existing = await localDataSource.getCachedTransactions();
+    await localDataSource.cacheTransactions(
+      existing.map((t) => t.id == updated.id ? updated : t).toList(),
+    );
+  }
 
-    return [
-      TransactionEntity(
-        id: '1',
-        amount: 249,
-        currencyCode: CurrencyCode.inr,
-        merchant: 'Zepto',
-        timestamp: DateTime.now(),
-        category: 'Food',
-        type: TransactionType.debit,
-        source: 'HDFC Savings',
-        status: TransactionStatus.completed,
-        isRecurring: false,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
+  Future<void> deleteTransaction(String id) async {
+    final existing = await localDataSource.getCachedTransactions();
+    await localDataSource.cacheTransactions(
+      existing.where((t) => t.id != id).toList(),
+    );
+  }
 
-      TransactionEntity(
-        id: '2',
-        amount: 799,
-        currencyCode: CurrencyCode.inr,
-        merchant: 'Amazon',
-        timestamp: DateTime.now(),
-        category: 'Shopping',
-        type: TransactionType.debit,
-        source: 'ICICI Credit Card',
-        status: TransactionStatus.completed,
-        isRecurring: false,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
+  Future<List<TransactionEntity>> reapplyRulesToCache() async {
+    final existing = await localDataSource.getCachedTransactions();
+    if (existing.isEmpty) {
+      return [];
+    }
+    final retagged = await ruleEngineService.applyRulesToAll(existing);
+    await localDataSource.cacheTransactions(retagged);
+    return retagged;
+  }
 
-      TransactionEntity(
-        id: '3',
-        amount: 45000,
-        currencyCode: CurrencyCode.inr,
-        merchant: 'Salary',
-        timestamp: DateTime.now(),
-        category: 'Income',
-        type: TransactionType.credit,
-        source: 'HDFC Salary Account',
-        status: TransactionStatus.completed,
-        isRecurring: true,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-    ];
+  Future<void> _refreshInBackground() async {
+    try {
+      // No remote source yet — background refresh is a no-op until
+      // Spring Boot backend is connected.
+    } catch (e) {
+      debugPrint('Background refresh failed: $e');
+    }
   }
 }
