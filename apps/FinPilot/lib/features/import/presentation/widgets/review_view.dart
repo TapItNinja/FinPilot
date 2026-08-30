@@ -1,4 +1,4 @@
-// ── Review view ───────────────────────────────────────────────────────────────
+// lib/features/import/presentation/widgets/review_view.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_app/core/theme/app_theme.dart';
@@ -6,7 +6,6 @@ import 'package:mobile_app/features/accounts/domain/entities/account_entity.dart
 import 'package:mobile_app/features/accounts/presentation/providers/account_notifier.dart';
 import 'package:mobile_app/features/import/data/pdf_parser_service.dart';
 import 'package:mobile_app/features/transactions/domain/entities/transaction_entity.dart';
-
 
 class ReviewView extends ConsumerWidget {
   final PdfImportResult result;
@@ -28,14 +27,22 @@ class ReviewView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final accounts = ref.watch(accountNotifierProvider).asData?.value ?? [];
+    final accounts = ref.watch(activeAccountsProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? FinPilotColors.primaryDark : FinPilotColors.primaryLight;
+    final onPrimary = isDark ? FinPilotColors.onPrimaryDark : Colors.white;
+    final surfaceColor = isDark ? FinPilotColors.darkSurface : FinPilotColors.lightSurface;
+    final borderColor = isDark ? FinPilotColors.darkBorder : FinPilotColors.lightBorder;
+    final textPrimary = isDark ? FinPilotColors.darkTextPrimary : FinPilotColors.lightTextPrimary;
+    final textSecondary = isDark ? FinPilotColors.darkTextSecondary : FinPilotColors.lightTextSecondary;
+    final textMuted = isDark ? FinPilotColors.darkTextMuted : FinPilotColors.lightTextMuted;
 
     return Column(
       children: [
         // ── Header ───────────────────────────────────────────────────
         Container(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-          color: FinPilotTheme.darkSurface,
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+          color: surfaceColor,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -47,16 +54,16 @@ class ReviewView extends ConsumerWidget {
                     children: [
                       Text(
                         result.bankName,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
+                        style: TextStyle(
+                          color: textPrimary,
+                          fontWeight: FontWeight.w800,
                           fontSize: 16,
                         ),
                       ),
                       Text(
                         '${result.transactions.length} transactions found  •  ${selectedIndices.length} selected',
-                        style: const TextStyle(
-                          color: Colors.white38,
+                        style: TextStyle(
+                          color: textMuted,
                           fontSize: 12,
                         ),
                       ),
@@ -69,16 +76,16 @@ class ReviewView extends ConsumerWidget {
                         vertical: 5,
                       ),
                       decoration: BoxDecoration(
-                        color: FinPilotTheme.warning.withValues(alpha: 0.15),
+                        color: FinPilotColors.warning.withValues(alpha: isDark ? 0.18 : 0.12),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: FinPilotTheme.warning.withValues(alpha: 0.3),
+                          color: FinPilotColors.warning.withValues(alpha: 0.3),
                         ),
                       ),
                       child: Text(
                         '⚠️ ${result.duplicateCount} duplicates',
                         style: const TextStyle(
-                          color: FinPilotTheme.warning,
+                          color: FinPilotColors.warning,
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
                         ),
@@ -90,17 +97,17 @@ class ReviewView extends ConsumerWidget {
               const SizedBox(height: 12),
 
               // Account picker
-              const Text(
+              Text(
                 'Import into account:',
-                style: TextStyle(color: Colors.white38, fontSize: 12),
+                style: TextStyle(color: textSecondary, fontSize: 12, fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 8),
               SizedBox(
                 height: 60,
                 child: accounts.isEmpty
-                    ? const Text(
+                    ? Text(
                         'No accounts found',
-                        style: TextStyle(color: Colors.white38),
+                        style: TextStyle(color: textMuted),
                       )
                     : ListView.separated(
                         scrollDirection: Axis.horizontal,
@@ -118,15 +125,11 @@ class ReviewView extends ConsumerWidget {
                               ),
                               decoration: BoxDecoration(
                                 color: isSelected
-                                    ? FinPilotTheme.primary.withValues(
-                                        alpha: 0.2,
-                                      )
-                                    : FinPilotTheme.darkSurface2,
+                                    ? primaryColor.withValues(alpha: isDark ? 0.2 : 0.12)
+                                    : (isDark ? FinPilotColors.darkSurface2 : FinPilotColors.lightSurface2),
                                 borderRadius: BorderRadius.circular(10),
                                 border: Border.all(
-                                  color: isSelected
-                                      ? FinPilotTheme.primary
-                                      : FinPilotTheme.darkBorder,
+                                  color: isSelected ? primaryColor : borderColor,
                                 ),
                               ),
                               child: Column(
@@ -135,17 +138,15 @@ class ReviewView extends ConsumerWidget {
                                   Text(
                                     account.name,
                                     style: TextStyle(
-                                      color: isSelected
-                                          ? FinPilotTheme.primary
-                                          : Colors.white70,
+                                      color: isSelected ? primaryColor : textPrimary,
                                       fontSize: 12,
-                                      fontWeight: FontWeight.w600,
+                                      fontWeight: FontWeight.w700,
                                     ),
                                   ),
                                   Text(
                                     'XXXX ${account.last4Digits}',
-                                    style: const TextStyle(
-                                      color: Colors.white38,
+                                    style: TextStyle(
+                                      color: textMuted,
                                       fontSize: 10,
                                     ),
                                   ),
@@ -163,7 +164,7 @@ class ReviewView extends ConsumerWidget {
         // ── Transaction list ─────────────────────────────────────────
         Expanded(
           child: ListView.builder(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(16),
             itemCount: result.transactions.length,
             itemBuilder: (context, index) {
               final t = result.transactions[index];
@@ -178,15 +179,15 @@ class ReviewView extends ConsumerWidget {
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: t.isDuplicateCandidate
-                          ? FinPilotTheme.warning.withValues(alpha: 0.06)
-                          : FinPilotTheme.darkSurface,
-                      borderRadius: BorderRadius.circular(12),
+                          ? FinPilotColors.warning.withValues(alpha: isDark ? 0.1 : 0.06)
+                          : surfaceColor,
+                      borderRadius: BorderRadius.circular(CardDimensions.borderRadiusSmall),
                       border: Border.all(
                         color: t.isDuplicateCandidate
-                            ? FinPilotTheme.warning.withValues(alpha: 0.3)
+                            ? FinPilotColors.warning.withValues(alpha: 0.35)
                             : isSelected
-                            ? FinPilotTheme.primary.withValues(alpha: 0.4)
-                            : FinPilotTheme.darkBorder,
+                                ? primaryColor.withValues(alpha: 0.5)
+                                : borderColor,
                       ),
                     ),
                     child: Row(
@@ -197,21 +198,17 @@ class ReviewView extends ConsumerWidget {
                           width: 22,
                           height: 22,
                           decoration: BoxDecoration(
-                            color: isSelected
-                                ? FinPilotTheme.primary
-                                : Colors.transparent,
+                            color: isSelected ? primaryColor : Colors.transparent,
                             borderRadius: BorderRadius.circular(6),
                             border: Border.all(
-                              color: isSelected
-                                  ? FinPilotTheme.primary
-                                  : Colors.white24,
+                              color: isSelected ? primaryColor : (isDark ? Colors.white24 : Colors.black26),
                               width: 2,
                             ),
                           ),
                           child: isSelected
-                              ? const Icon(
+                              ? Icon(
                                   Icons.check_rounded,
-                                  color: Colors.white,
+                                  color: onPrimary,
                                   size: 14,
                                 )
                               : null,
@@ -225,15 +222,14 @@ class ReviewView extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Flexible(
                                     child: Text(
                                       t.merchant,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w600,
+                                      style: TextStyle(
+                                        color: textPrimary,
+                                        fontWeight: FontWeight.w700,
                                         fontSize: 14,
                                       ),
                                       maxLines: 1,
@@ -241,12 +237,12 @@ class ReviewView extends ConsumerWidget {
                                     ),
                                   ),
                                   Text(
-                                    '${t.type == TransactionType.debit ? '-' : '+'}₹${t.amount.toStringAsFixed(0)}',
+                                    '${t.type == TransactionType.debit ? '-' : '+'}\$${t.amount.toStringAsFixed(2)}',
                                     style: TextStyle(
                                       color: t.type == TransactionType.debit
-                                          ? FinPilotTheme.expense
-                                          : FinPilotTheme.income,
-                                      fontWeight: FontWeight.w700,
+                                          ? FinPilotColors.expense
+                                          : FinPilotColors.income,
+                                      fontWeight: FontWeight.w800,
                                       fontSize: 14,
                                     ),
                                   ),
@@ -254,13 +250,12 @@ class ReviewView extends ConsumerWidget {
                               ),
                               const SizedBox(height: 3),
                               Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     '${t.date.day}/${t.date.month}/${t.date.year}',
-                                    style: const TextStyle(
-                                      color: Colors.white38,
+                                    style: TextStyle(
+                                      color: textMuted,
                                       fontSize: 12,
                                     ),
                                   ),
@@ -269,16 +264,16 @@ class ReviewView extends ConsumerWidget {
                                       children: [
                                         const Icon(
                                           Icons.warning_amber_rounded,
-                                          color: FinPilotTheme.warning,
+                                          color: FinPilotColors.warning,
                                           size: 12,
                                         ),
                                         const SizedBox(width: 4),
                                         Text(
-                                          t.duplicateReason ??
-                                              'Possible duplicate',
+                                          t.duplicateReason ?? 'Possible duplicate',
                                           style: const TextStyle(
-                                            color: FinPilotTheme.warning,
+                                            color: FinPilotColors.warning,
                                             fontSize: 11,
+                                            fontWeight: FontWeight.w600,
                                           ),
                                         ),
                                       ],
@@ -299,8 +294,8 @@ class ReviewView extends ConsumerWidget {
 
         // ── Import button ────────────────────────────────────────────
         Container(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
-          color: FinPilotTheme.darkBg,
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+          color: surfaceColor,
           child: SizedBox(
             width: double.infinity,
             height: 52,
@@ -308,7 +303,7 @@ class ReviewView extends ConsumerWidget {
               onPressed: selectedIndices.isEmpty ? null : onImport,
               child: Text(
                 'Import ${selectedIndices.length} Transaction${selectedIndices.length == 1 ? '' : 's'}',
-                style: const TextStyle(fontSize: 16),
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
               ),
             ),
           ),

@@ -18,17 +18,32 @@ class AccountPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     if (accounts.isEmpty) {
       return Container(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: FinPilotTheme.darkSurface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: FinPilotTheme.darkBorder),
+          color: isDark ? FinPilotColors.darkSurface : FinPilotColors.lightSurface,
+          borderRadius: BorderRadius.circular(CardDimensions.borderRadiusSmall),
+          border: Border.all(
+            color: isDark ? FinPilotColors.darkBorder : FinPilotColors.lightBorder,
+          ),
         ),
-        child: const Text(
-          'No accounts added yet. Add one from the home screen.',
-          style: TextStyle(color: Colors.white38, fontSize: 13),
+        child: Row(
+          children: [
+            Icon(Icons.ac_unit_rounded, color: isDark ? FinPilotColors.darkTextMuted : FinPilotColors.lightTextMuted, size: 20),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'No active accounts available. Please add or unfreeze an account in Settings.',
+                style: TextStyle(
+                  color: isDark ? FinPilotColors.darkTextMuted : FinPilotColors.lightTextMuted,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          ],
         ),
       );
     }
@@ -48,10 +63,10 @@ class AccountPicker extends StatelessWidget {
             onTap: () => onSelected(account),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
-              width: 140,
+              width: 100 * CardDimensions.creditCardAspectRatio,
               decoration: BoxDecoration(
                 gradient: gradient,
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(CardDimensions.borderRadiusSmall),
                 border: Border.all(
                   color: isSelected ? Colors.white : Colors.transparent,
                   width: 2.5,

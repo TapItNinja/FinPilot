@@ -1,4 +1,4 @@
-//lib/features/transactions/presentation/widgets/transaction_widget/empty_transaction_state.dart
+// lib/features/transactions/presentation/widgets/transaction_widget/empty_transaction_state.dart
 import 'package:flutter/material.dart';
 import 'package:mobile_app/core/theme/app_theme.dart';
 
@@ -7,45 +7,46 @@ class EmptyTransactionState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? FinPilotColors.primaryDark : FinPilotColors.primaryLight;
+
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(24),
-
-            decoration: BoxDecoration(
-              color: FinPilotTheme.primary.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: primaryColor.withValues(alpha: isDark ? 0.15 : 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.receipt_long_rounded,
+                size: 48,
+                color: primaryColor,
+              ),
             ),
-
-            child: const Icon(
-              Icons.receipt_long_rounded,
-              size: 48,
-              color: FinPilotTheme.primary,
+            const SizedBox(height: 20),
+            Text(
+              'No transactions yet',
+              style: TextStyle(
+                color: isDark ? FinPilotColors.darkTextPrimary : FinPilotColors.lightTextPrimary,
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+              ),
             ),
-          ),
-
-          const SizedBox(height: 20),
-
-          const Text(
-            'No transactions yet',
-
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
+            const SizedBox(height: 8),
+            Text(
+              'Tap + to add your first transaction',
+              style: TextStyle(
+                color: isDark ? FinPilotColors.darkTextMuted : FinPilotColors.lightTextMuted,
+                fontSize: 14,
+              ),
             ),
-          ),
-
-          const SizedBox(height: 8),
-
-          const Text(
-            'Tap + to add your first transaction',
-
-            style: TextStyle(color: Colors.white38, fontSize: 14),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

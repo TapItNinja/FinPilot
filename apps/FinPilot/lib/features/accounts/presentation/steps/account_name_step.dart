@@ -1,5 +1,5 @@
-// ── Step 1: Name + Type ───────────────────────────────────────────────────────
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:mobile_app/features/accounts/domain/entities/account_entity.dart';
 import 'package:mobile_app/features/accounts/presentation/widgets/account_card_widget.dart';
 import 'package:mobile_app/core/theme/app_theme.dart';
@@ -40,7 +40,10 @@ class _Step1NameTypeState extends State<Step1NameType> {
 
   @override
   Widget build(BuildContext context) {
-    // Live preview card
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? FinPilotColors.primaryDark : FinPilotColors.primaryLight;
+    final textPrimary = isDark ? FinPilotColors.darkTextPrimary : FinPilotColors.lightTextPrimary;
+
     final previewAccount = AccountEntity(
       id: 'preview',
       name: _nameController.text.isEmpty
@@ -57,42 +60,42 @@ class _Step1NameTypeState extends State<Step1NameType> {
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
       child: Column(
         children: [
-          // Card preview
-          AccountCardWidget(account: previewAccount, height: 180),
+          AccountCardWidget(account: previewAccount),
 
           const SizedBox(height: 32),
 
-          // Name field — live updates card preview
           TextField(
             controller: _nameController,
             textCapitalization: TextCapitalization.words,
             autofocus: true,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: textPrimary,
               fontSize: 20,
               fontWeight: FontWeight.w700,
             ),
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               hintText: 'Account name',
               border: InputBorder.none,
               enabledBorder: InputBorder.none,
               focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: FinPilotTheme.primary, width: 2),
+                borderSide: BorderSide(color: primaryColor, width: 2),
               ),
-              contentPadding: EdgeInsets.symmetric(vertical: 8),
+              contentPadding: const EdgeInsets.symmetric(vertical: 8),
             ),
             onChanged: (_) => setState(() {}),
           ),
 
           const SizedBox(height: 24),
 
-          // Type selector
           TypeOption(
             label: 'Bank',
             subtitle: 'Savings or current account',
             icon: Icons.account_balance_rounded,
             isSelected: _kind == AccountKind.bank,
-            onTap: () => setState(() => _kind = AccountKind.bank),
+            onTap: () {
+              HapticFeedback.selectionClick();
+              setState(() => _kind = AccountKind.bank);
+            },
           ),
           const SizedBox(height: 12),
           TypeOption(
@@ -100,20 +103,25 @@ class _Step1NameTypeState extends State<Step1NameType> {
             subtitle: 'Visa, Mastercard, Amex, etc.',
             icon: Icons.credit_card_rounded,
             isSelected: _kind == AccountKind.creditCard,
-            onTap: () => setState(() => _kind = AccountKind.creditCard),
+            onTap: () {
+              HapticFeedback.selectionClick();
+              setState(() => _kind = AccountKind.creditCard);
+            },
           ),
 
           const Spacer(),
 
-          // Continue button
           SizedBox(
             width: double.infinity,
             height: 52,
             child: ElevatedButton(
               onPressed: _nameController.text.trim().isEmpty
                   ? null
-                  : () => widget.onNext(_nameController.text.trim(), _kind),
-              child: const Text('Continue'),
+                  : () {
+                      HapticFeedback.lightImpact();
+                      widget.onNext(_nameController.text.trim(), _kind);
+                    },
+              child: const Text('Continue', style: TextStyle(fontWeight: FontWeight.w700)),
             ),
           ),
         ],

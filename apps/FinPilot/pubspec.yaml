@@ -40,7 +40,7 @@ dependencies:
   dio: ^5.9.2
   freezed_annotation: ^3.1.0
   json_annotation: ^4.11.0
-  flutter_secure_storage: ^10.1.0
+  flutter_secure_storage: ^10.3.0
   flutter_dotenv: ^6.0.1
   hive: ^2.2.3
   path_provider: ^2.1.5

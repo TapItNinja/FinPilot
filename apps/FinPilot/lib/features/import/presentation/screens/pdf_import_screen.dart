@@ -1,12 +1,7 @@
 // lib/features/import/presentation/screens/pdf_import_screen.dart
-//
-// Full PDF import flow in one screen with multiple states:
-// idle → picking → extracting → reviewing → importing → done
-
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mobile_app/core/theme/app_theme.dart';
 import 'package:mobile_app/features/accounts/domain/entities/account_entity.dart';
 import 'package:mobile_app/features/import/data/pdf_parser_service.dart';
 import 'package:mobile_app/features/import/presentation/widgets/done_view.dart';
@@ -16,7 +11,6 @@ import 'package:mobile_app/features/import/presentation/widgets/password_view.da
 import 'package:mobile_app/features/import/presentation/widgets/review_view.dart';
 import 'package:mobile_app/features/transactions/presentation/providers/transaction_notifier.dart';
 
-// ── Screen states ─────────────────────────────────────────────────────────────
 enum _ImportStep {
   idle,
   picking,
@@ -28,7 +22,9 @@ enum _ImportStep {
 }
 
 class PdfImportScreen extends ConsumerStatefulWidget {
-  const PdfImportScreen({super.key});
+  final AccountEntity? initialAccount;
+
+  const PdfImportScreen({super.key, this.initialAccount});
 
   @override
   ConsumerState<PdfImportScreen> createState() => _PdfImportScreenState();
@@ -42,11 +38,14 @@ class _PdfImportScreenState extends ConsumerState<PdfImportScreen> {
   AccountEntity? _selectedAccount;
   String? _errorMessage;
 
-  // Which parsed transactions the user has selected to import
-  // (they can deselect duplicates)
   final Set<int> _selectedIndices = {};
-
   final _passwordController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedAccount = widget.initialAccount;
+  }
 
   @override
   void dispose() {
@@ -54,7 +53,6 @@ class _PdfImportScreenState extends ConsumerState<PdfImportScreen> {
     super.dispose();
   }
 
-  // ── Step 1: Pick file ─────────────────────────────────────────────────────
   Future<void> _pickFile() async {
     setState(() => _step = _ImportStep.picking);
 
@@ -72,7 +70,6 @@ class _PdfImportScreenState extends ConsumerState<PdfImportScreen> {
     });
   }
 
-  // ── Step 2: Extract text ──────────────────────────────────────────────────
   Future<void> _extractAndParse({String? password}) async {
     setState(() => _step = _ImportStep.extracting);
 
@@ -90,9 +87,7 @@ class _PdfImportScreenState extends ConsumerState<PdfImportScreen> {
       return;
     }
 
-    // Get existing transactions for duplicate detection
     final existing = ref.read(transactionNotifierProvider).asData?.value ?? [];
-
     final result = service.parseText(text, _pickedFile!.name, existing);
 
     if (result.hasError) {
@@ -103,7 +98,6 @@ class _PdfImportScreenState extends ConsumerState<PdfImportScreen> {
       return;
     }
 
-    // Pre-select all non-duplicate transactions
     final indices = <int>{};
     for (int i = 0; i < result.transactions.length; i++) {
       if (!result.transactions[i].isDuplicateCandidate) {
@@ -119,7 +113,6 @@ class _PdfImportScreenState extends ConsumerState<PdfImportScreen> {
     });
   }
 
-  // ── Step 3: Import selected ───────────────────────────────────────────────
   Future<void> _importSelected() async {
     if (_selectedAccount == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -150,9 +143,7 @@ class _PdfImportScreenState extends ConsumerState<PdfImportScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: FinPilotTheme.darkBg,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
         title: const Text('Import PDF Statement'),
       ),
       body: AnimatedSwitcher(
@@ -216,7 +207,3 @@ class _PdfImportScreenState extends ConsumerState<PdfImportScreen> {
     }
   }
 }
-
-
-
-

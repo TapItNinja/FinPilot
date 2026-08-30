@@ -1,3 +1,4 @@
+// lib/features/accounts/presentation/widgets/type_option_tile.dart
 import 'package:flutter/material.dart';
 import 'package:mobile_app/core/theme/app_theme.dart';
 
@@ -19,6 +20,14 @@ class TypeOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? FinPilotColors.primaryDark : FinPilotColors.primaryLight;
+    final surfaceColor = isDark ? FinPilotColors.darkSurface : FinPilotColors.lightSurface;
+    final surface2 = isDark ? FinPilotColors.darkSurface2 : FinPilotColors.lightSurface2;
+    final borderColor = isDark ? FinPilotColors.darkBorder : FinPilotColors.lightBorder;
+    final textPrimary = isDark ? FinPilotColors.darkTextPrimary : FinPilotColors.lightTextPrimary;
+    final textMuted = isDark ? FinPilotColors.darkTextMuted : FinPilotColors.lightTextMuted;
+
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -26,13 +35,11 @@ class TypeOption extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: isSelected
-              ? FinPilotTheme.primary.withValues(alpha: 0.1)
-              : FinPilotTheme.darkSurface,
-          borderRadius: BorderRadius.circular(14),
+              ? primaryColor.withValues(alpha: isDark ? 0.18 : 0.1)
+              : surfaceColor,
+          borderRadius: BorderRadius.circular(CardDimensions.borderRadiusSmall),
           border: Border.all(
-            color: isSelected
-                ? FinPilotTheme.primary
-                : FinPilotTheme.darkBorder,
+            color: isSelected ? primaryColor : borderColor,
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -42,13 +49,13 @@ class TypeOption extends StatelessWidget {
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? FinPilotTheme.primary.withValues(alpha: 0.15)
-                    : FinPilotTheme.darkSurface2,
+                    ? primaryColor.withValues(alpha: isDark ? 0.2 : 0.15)
+                    : surface2,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(
                 icon,
-                color: isSelected ? FinPilotTheme.primary : Colors.white38,
+                color: isSelected ? primaryColor : textMuted,
                 size: 22,
               ),
             ),
@@ -60,22 +67,22 @@ class TypeOption extends StatelessWidget {
                   Text(
                     label,
                     style: TextStyle(
-                      color: isSelected ? Colors.white : Colors.white70,
-                      fontWeight: FontWeight.w600,
+                      color: isSelected ? primaryColor : textPrimary,
+                      fontWeight: FontWeight.w700,
                       fontSize: 15,
                     ),
                   ),
                   Text(
                     subtitle,
-                    style: const TextStyle(color: Colors.white38, fontSize: 12),
+                    style: TextStyle(color: textMuted, fontSize: 12),
                   ),
                 ],
               ),
             ),
             if (isSelected)
-              const Icon(
+              Icon(
                 Icons.check_circle_rounded,
-                color: FinPilotTheme.primary,
+                color: primaryColor,
                 size: 20,
               ),
           ],

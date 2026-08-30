@@ -30,21 +30,30 @@ class TransactionSummary {
   );
 }
 
-// Summary filtered by selected account (null = all accounts)
+// Summary filtered by selected account (null = all unfrozen accounts)
 final transactionSummaryProvider = Provider<TransactionSummary>((ref) {
   final transactionState = ref.watch(transactionNotifierProvider);
   final selectedAccount = ref.watch(selectedAccountProvider);
+  final unfrozenIds = ref.watch(unfrozenAccountIdsProvider);
 
   return transactionState.when(
     loading: () => TransactionSummary.empty,
     error: (error, stackTrace) => TransactionSummary.empty,
     data: (transactions) {
-      // Filter by account if one is selected
-      final filtered = selectedAccount == null
-          ? transactions
-          : transactions
-                .where((t) => t.accountId == selectedAccount.id)
-                .toList();
+      if (selectedAccount != null) {
+        if (selectedAccount.isFrozen || !unfrozenIds.contains(selectedAccount.id)) {
+          return TransactionSummary.empty;
+        }
+        final filtered = transactions
+            .where((t) => t.accountId == selectedAccount.id)
+            .toList();
+        return computeSummary(filtered);
+      }
+
+      // Overall mode: exclude all frozen accounts
+      final filtered = transactions
+          .where((t) => unfrozenIds.contains(t.accountId))
+          .toList();
       return computeSummary(filtered);
     },
   );
@@ -96,21 +105,31 @@ TransactionSummary computeSummary(List<TransactionEntity> all) {
   );
 }
 
-// Grouped transactions filtered by selected account
+// Grouped transactions filtered by selected account (and excluding frozen accounts in overall mode)
 final groupedTransactionsProvider =
     Provider<Map<String, List<TransactionEntity>>>((ref) {
       final transactionState = ref.watch(transactionNotifierProvider);
       final selectedAccount = ref.watch(selectedAccountProvider);
+      final unfrozenIds = ref.watch(unfrozenAccountIdsProvider);
 
       return transactionState.when(
         loading: () => {},
         error: (error, stackTrace) => {},
         data: (transactions) {
-          final filtered = selectedAccount == null
-              ? transactions
-              : transactions
-                    .where((t) => t.accountId == selectedAccount.id)
-                    .toList();
+          if (selectedAccount != null) {
+            if (selectedAccount.isFrozen || !unfrozenIds.contains(selectedAccount.id)) {
+              return {};
+            }
+            final filtered = transactions
+                .where((t) => t.accountId == selectedAccount.id)
+                .toList();
+            return groupByDate(filtered);
+          }
+
+          // Overall mode: exclude transactions from frozen accounts
+          final filtered = transactions
+              .where((t) => unfrozenIds.contains(t.accountId))
+              .toList();
           return groupByDate(filtered);
         },
       );

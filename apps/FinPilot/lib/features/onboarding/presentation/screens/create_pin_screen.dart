@@ -1,19 +1,18 @@
 // lib/features/onboarding/presentation/screens/create_pin_screen.dart
-//
-// Shown after first login. User sets a 4-digit PIN.
-// PIN is stored in flutter_secure_storage via PinService.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/services.dart';
 import 'package:mobile_app/core/state/app_state_notifier.dart';
 import 'package:mobile_app/core/theme/app_theme.dart';
 import 'package:mobile_app/features/onboarding/presentation/widgets/number_pad.dart';
 
 class CreatePinScreen extends ConsumerStatefulWidget {
   const CreatePinScreen({super.key});
+
   @override
   ConsumerState<CreatePinScreen> createState() => _CreatePinScreenState();
 }
+
 class _CreatePinScreenState extends ConsumerState<CreatePinScreen> {
   final List<String> _pin = [];
   final List<String> _confirmPin = [];
@@ -21,13 +20,13 @@ class _CreatePinScreenState extends ConsumerState<CreatePinScreen> {
   String? _errorMessage;
 
   void _onDigitTap(String digit) {
+    HapticFeedback.lightImpact();
     setState(() {
       _errorMessage = null;
       final current = _isConfirming ? _confirmPin : _pin;
       if (current.length < 4) {
         current.add(digit);
 
-        // Auto-advance after 4 digits
         if (!_isConfirming && _pin.length == 4) {
           Future.delayed(const Duration(milliseconds: 150), () {
             if (mounted) {
@@ -42,6 +41,7 @@ class _CreatePinScreenState extends ConsumerState<CreatePinScreen> {
   }
 
   void _onDelete() {
+    HapticFeedback.selectionClick();
     setState(() {
       _errorMessage = null;
       if (_isConfirming && _confirmPin.isNotEmpty) {
@@ -54,10 +54,10 @@ class _CreatePinScreenState extends ConsumerState<CreatePinScreen> {
 
   Future<void> _validateAndSave() async {
     if (_pin.join() != _confirmPin.join()) {
+      HapticFeedback.heavyImpact();
       setState(() {
         _errorMessage = 'PINs do not match. Try again.';
         _confirmPin.clear();
-        // Shake effect — reset to re-enter confirm PIN
         Future.delayed(const Duration(milliseconds: 300), () {
           if (mounted) {
             setState(() => _isConfirming = true);
@@ -66,12 +66,18 @@ class _CreatePinScreenState extends ConsumerState<CreatePinScreen> {
       });
       return;
     }
+    HapticFeedback.mediumImpact();
     await ref.read(appStateProvider.notifier).pinCreated(_pin.join());
   }
+
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? FinPilotColors.primaryDark : FinPilotColors.primaryLight;
+    final textPrimary = isDark ? FinPilotColors.darkTextPrimary : FinPilotColors.lightTextPrimary;
+    final textMuted = isDark ? FinPilotColors.darkTextMuted : FinPilotColors.lightTextMuted;
+
     return Scaffold(
-      backgroundColor: FinPilotTheme.darkBg,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(32, 48, 32, 32),
@@ -80,10 +86,11 @@ class _CreatePinScreenState extends ConsumerState<CreatePinScreen> {
               // Header
               Text(
                 _isConfirming ? 'Confirm your PIN' : 'Create a PIN',
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: textPrimary,
                   fontSize: 28,
                   fontWeight: FontWeight.w800,
+                  letterSpacing: -0.5,
                 ),
               ),
               const SizedBox(height: 8),
@@ -91,7 +98,7 @@ class _CreatePinScreenState extends ConsumerState<CreatePinScreen> {
                 _isConfirming
                     ? 'Enter your PIN again to confirm'
                     : 'This PIN protects your financial data',
-                style: const TextStyle(color: Colors.white38, fontSize: 15),
+                style: TextStyle(color: textMuted, fontSize: 15),
               ),
 
               const SizedBox(height: 48),
@@ -110,12 +117,12 @@ class _CreatePinScreenState extends ConsumerState<CreatePinScreen> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: filled
-                          ? FinPilotTheme.primary
-                          : FinPilotTheme.darkSurface2,
+                          ? primaryColor
+                          : (isDark ? FinPilotColors.darkSurface2 : FinPilotColors.lightSurface2),
                       border: Border.all(
                         color: filled
-                            ? FinPilotTheme.primary
-                            : FinPilotTheme.darkBorder,
+                            ? primaryColor
+                            : (isDark ? FinPilotColors.darkBorder : FinPilotColors.lightBorder),
                         width: 2,
                       ),
                     ),
@@ -128,8 +135,9 @@ class _CreatePinScreenState extends ConsumerState<CreatePinScreen> {
                 Text(
                   _errorMessage!,
                   style: const TextStyle(
-                    color: FinPilotTheme.expense,
+                    color: FinPilotColors.expense,
                     fontSize: 14,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
@@ -145,5 +153,3 @@ class _CreatePinScreenState extends ConsumerState<CreatePinScreen> {
     );
   }
 }
-
-

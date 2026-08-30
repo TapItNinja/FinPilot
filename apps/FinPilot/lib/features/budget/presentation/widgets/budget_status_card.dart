@@ -1,4 +1,4 @@
-// ── Budget Status Card ────────────────────────────────────────────────────────
+// lib/features/budget/presentation/widgets/budget_status_card.dart
 import 'package:flutter/material.dart';
 import 'package:mobile_app/core/theme/app_theme.dart';
 import 'package:mobile_app/core/theme/category_styles.dart';
@@ -13,6 +13,12 @@ class BudgetStatusCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final budget = status.budget;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surfaceColor = isDark ? FinPilotColors.darkSurface : FinPilotColors.lightSurface;
+    final borderColor = isDark ? FinPilotColors.darkBorder : FinPilotColors.lightBorder;
+    final textPrimary = isDark ? FinPilotColors.darkTextPrimary : FinPilotColors.lightTextPrimary;
+    final textMuted = isDark ? FinPilotColors.darkTextMuted : FinPilotColors.lightTextMuted;
+
     final color = _healthColor(status.health);
     final style = budget.isOverall
         ? null
@@ -23,12 +29,12 @@ class BudgetStatusCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: FinPilotTheme.darkSurface,
-          borderRadius: BorderRadius.circular(16),
+          color: surfaceColor,
+          borderRadius: BorderRadius.circular(CardDimensions.borderRadiusSmall),
           border: Border.all(
             color: status.isOverBudget
-                ? FinPilotTheme.expense.withValues(alpha: 0.4)
-                : FinPilotTheme.darkBorder,
+                ? FinPilotColors.expense.withValues(alpha: 0.4)
+                : borderColor,
           ),
         ),
         child: Column(
@@ -43,7 +49,7 @@ class BudgetStatusCard extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(7),
                         decoration: BoxDecoration(
-                          color: style.color.withValues(alpha: 0.12),
+                          color: style.color.withValues(alpha: isDark ? 0.18 : 0.12),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Icon(style.icon, color: style.color, size: 16),
@@ -52,9 +58,9 @@ class BudgetStatusCard extends StatelessWidget {
                     ],
                     Text(
                       budget.isOverall ? 'Overall' : budget.category!,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
+                      style: TextStyle(
+                        color: textPrimary,
+                        fontWeight: FontWeight.w700,
                         fontSize: 15,
                       ),
                     ),
@@ -63,17 +69,17 @@ class BudgetStatusCard extends StatelessWidget {
                 Row(
                   children: [
                     Text(
-                      '₹${_fmt(status.spent)} / ₹${_fmt(budget.limitAmount)}',
+                      '\$${_fmt(status.spent)} / \$${_fmt(budget.limitAmount)}',
                       style: TextStyle(
                         color: color,
                         fontSize: 13,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                     const SizedBox(width: 8),
-                    const Icon(
+                    Icon(
                       Icons.edit_outlined,
-                      color: Colors.white24,
+                      color: textMuted,
                       size: 16,
                     ),
                   ],
@@ -89,7 +95,7 @@ class BudgetStatusCard extends StatelessWidget {
               child: LinearProgressIndicator(
                 value: (status.percentUsed / 100).clamp(0.0, 1.0),
                 minHeight: 8,
-                backgroundColor: FinPilotTheme.darkSurface2,
+                backgroundColor: isDark ? FinPilotColors.darkSurface2 : FinPilotColors.lightSurface2,
                 valueColor: AlwaysStoppedAnimation<Color>(color),
               ),
             ),
@@ -101,17 +107,17 @@ class BudgetStatusCard extends StatelessWidget {
               children: [
                 Text(
                   status.isOverBudget
-                      ? '₹${_fmt(status.spent - budget.limitAmount)} over budget'
-                      : '₹${_fmt(status.remaining)} remaining',
+                      ? '\$${_fmt(status.spent - budget.limitAmount)} over budget'
+                      : '\$${_fmt(status.remaining)} remaining',
                   style: TextStyle(
                     color: color,
                     fontSize: 12,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 Text(
                   '${status.percentUsed.toStringAsFixed(0)}%',
-                  style: const TextStyle(color: Colors.white38, fontSize: 12),
+                  style: TextStyle(color: textMuted, fontSize: 12, fontWeight: FontWeight.w600),
                 ),
               ],
             ),
@@ -124,21 +130,17 @@ class BudgetStatusCard extends StatelessWidget {
   Color _healthColor(BudgetHealthLevel health) {
     switch (health) {
       case BudgetHealthLevel.safe:
-        return FinPilotTheme.income;
+        return FinPilotColors.income;
       case BudgetHealthLevel.warning:
-        return FinPilotTheme.warning;
+        return FinPilotColors.warning;
       case BudgetHealthLevel.over:
-        return FinPilotTheme.expense;
+        return FinPilotColors.expense;
     }
   }
 
   String _fmt(double v) {
-    if (v >= 100000) {
-      return '${(v / 100000).toStringAsFixed(1)}L';
-    }
-    if (v >= 1000) {
-      return '${(v / 1000).toStringAsFixed(1)}K';
-    }
+    if (v >= 1000000) return '${(v / 1000000).toStringAsFixed(1)}M';
+    if (v >= 1000) return '${(v / 1000).toStringAsFixed(1)}K';
     return v.toStringAsFixed(0);
   }
 }

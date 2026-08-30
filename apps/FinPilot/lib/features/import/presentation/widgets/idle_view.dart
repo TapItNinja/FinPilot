@@ -1,4 +1,4 @@
-// ── Idle view ─────────────────────────────────────────────────────────────────
+// lib/features/import/presentation/widgets/idle_view.dart
 import 'package:flutter/material.dart';
 import 'package:mobile_app/core/theme/app_theme.dart';
 
@@ -10,6 +10,11 @@ class IdleView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? FinPilotColors.primaryDark : FinPilotColors.primaryLight;
+    final textPrimary = isDark ? FinPilotColors.darkTextPrimary : FinPilotColors.lightTextPrimary;
+    final textSecondary = isDark ? FinPilotColors.darkTextSecondary : FinPilotColors.lightTextSecondary;
+
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -18,29 +23,29 @@ class IdleView extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(28),
             decoration: BoxDecoration(
-              color: FinPilotTheme.primary.withValues(alpha: 0.1),
+              color: primaryColor.withValues(alpha: isDark ? 0.18 : 0.1),
               shape: BoxShape.circle,
             ),
-            child: const Icon(
+            child: Icon(
               Icons.picture_as_pdf_rounded,
               size: 56,
-              color: FinPilotTheme.primary,
+              color: primaryColor,
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
+          Text(
             'Import Bank Statement',
             style: TextStyle(
-              color: Colors.white,
+              color: textPrimary,
               fontSize: 22,
               fontWeight: FontWeight.w800,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Supports HDFC, SBI, ICICI, and Axis Bank\nstatements in PDF format.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white38, fontSize: 14, height: 1.5),
+            style: TextStyle(color: textSecondary, fontSize: 14, height: 1.5),
           ),
 
           if (errorMessage != null) ...[
@@ -48,17 +53,17 @@ class IdleView extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: FinPilotTheme.expense.withValues(alpha: 0.1),
+                color: FinPilotColors.expense.withValues(alpha: isDark ? 0.18 : 0.1),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: FinPilotTheme.expense.withValues(alpha: 0.3),
+                  color: FinPilotColors.expense.withValues(alpha: 0.3),
                 ),
               ),
               child: Row(
                 children: [
                   const Icon(
                     Icons.error_outline_rounded,
-                    color: FinPilotTheme.expense,
+                    color: FinPilotColors.expense,
                     size: 18,
                   ),
                   const SizedBox(width: 10),
@@ -66,7 +71,7 @@ class IdleView extends StatelessWidget {
                     child: Text(
                       errorMessage!,
                       style: const TextStyle(
-                        color: FinPilotTheme.expense,
+                        color: FinPilotColors.expense,
                         fontSize: 13,
                       ),
                     ),
@@ -84,13 +89,12 @@ class IdleView extends StatelessWidget {
             child: ElevatedButton.icon(
               onPressed: onPickFile,
               icon: const Icon(Icons.upload_file_rounded),
-              label: const Text('Choose PDF File'),
+              label: const Text('Choose PDF File', style: TextStyle(fontWeight: FontWeight.w700)),
             ),
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
 
-          // Supported banks chips
           Wrap(
             spacing: 8,
             children: ['HDFC', 'SBI', 'ICICI', 'Axis'].map((bank) {
@@ -100,13 +104,15 @@ class IdleView extends StatelessWidget {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: FinPilotTheme.darkSurface,
+                  color: isDark ? FinPilotColors.darkSurface2 : FinPilotColors.lightSurface2,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: FinPilotTheme.darkBorder),
+                  border: Border.all(
+                    color: isDark ? FinPilotColors.darkBorder : FinPilotColors.lightBorder,
+                  ),
                 ),
                 child: Text(
                   bank,
-                  style: const TextStyle(color: Colors.white54, fontSize: 12),
+                  style: TextStyle(color: textSecondary, fontSize: 12, fontWeight: FontWeight.w600),
                 ),
               );
             }).toList(),

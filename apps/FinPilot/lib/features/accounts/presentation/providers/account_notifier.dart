@@ -52,6 +52,25 @@ class AccountNotifier extends AsyncNotifier<List<AccountEntity>> {
     return account;
   }
 
+  Future<void> toggleFreeze(String id) async {
+    final repo = ref.read(accountRepositoryProvider);
+    final current = state.asData?.value ?? [];
+    
+    final index = current.indexWhere((a) => a.id == id);
+    if (index != -1) {
+      final account = current[index];
+      final updatedAccount = account.copyWith(isFrozen: !account.isFrozen);
+      
+      // Update repository
+      await repo.updateAccount(updatedAccount);
+      
+      // Update state
+      final newList = List<AccountEntity>.from(current);
+      newList[index] = updatedAccount;
+      state = AsyncData(newList);
+    }
+  }
+
   Future<void> deleteAccount(String id) async {
     await ref.read(accountRepositoryProvider).deleteAccount(id);
     final current = state.asData?.value ?? [];
@@ -65,6 +84,22 @@ class AccountNotifier extends AsyncNotifier<List<AccountEntity>> {
     );
   }
 }
+
+// ── Filtered Account Providers ────────────────────────────────────────────────
+final activeAccountsProvider = Provider<List<AccountEntity>>((ref) {
+  final accounts = ref.watch(accountNotifierProvider).asData?.value ?? [];
+  return accounts.where((a) => !a.isFrozen).toList();
+});
+
+final frozenAccountsProvider = Provider<List<AccountEntity>>((ref) {
+  final accounts = ref.watch(accountNotifierProvider).asData?.value ?? [];
+  return accounts.where((a) => a.isFrozen).toList();
+});
+
+final unfrozenAccountIdsProvider = Provider<Set<String>>((ref) {
+  final accounts = ref.watch(accountNotifierProvider).asData?.value ?? [];
+  return accounts.where((a) => !a.isFrozen).map((a) => a.id).toSet();
+});
 
 // ── Selected account provider ─────────────────────────────────────────────────
 // null = Overall (all accounts combined)

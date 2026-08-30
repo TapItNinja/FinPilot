@@ -28,6 +28,7 @@ class AccountEntity {
   final String last4Digits; // last 4 digits of account/card number
   final CardGradientTheme gradientTheme;
   final bool isActive;
+  final bool isFrozen; // Whether the card is physically frozen
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -40,6 +41,7 @@ class AccountEntity {
     required this.createdAt,
     required this.updatedAt,
     this.isActive = true,
+    this.isFrozen = false,
   });
 
   AccountEntity copyWith({
@@ -48,6 +50,7 @@ class AccountEntity {
     String? last4Digits,
     CardGradientTheme? gradientTheme,
     bool? isActive,
+    bool? isFrozen,
     DateTime? updatedAt,
   }) {
     return AccountEntity(
@@ -57,6 +60,7 @@ class AccountEntity {
       last4Digits: last4Digits ?? this.last4Digits,
       gradientTheme: gradientTheme ?? this.gradientTheme,
       isActive: isActive ?? this.isActive,
+      isFrozen: isFrozen ?? this.isFrozen,
       createdAt: createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -69,6 +73,7 @@ class AccountEntity {
     'last4Digits': last4Digits,
     'gradientTheme': gradientTheme.name,
     'isActive': isActive,
+    'isFrozen': isFrozen,
     'createdAt': createdAt.toIso8601String(),
     'updatedAt': updatedAt.toIso8601String(),
   };
@@ -86,6 +91,7 @@ class AccountEntity {
       orElse: () => CardGradientTheme.indigoPurple,
     ),
     isActive: map['isActive'] ?? true,
+    isFrozen: map['isFrozen'] ?? false,
     createdAt: DateTime.parse(map['createdAt']),
     updatedAt: DateTime.parse(map['updatedAt']),
   );

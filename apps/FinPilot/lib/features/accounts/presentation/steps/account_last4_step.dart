@@ -1,6 +1,4 @@
-
-
-// ── Step 2: Last 4 digits ─────────────────────────────────────────────────────
+// lib/features/accounts/presentation/steps/account_last4_step.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mobile_app/core/theme/app_theme.dart';
@@ -46,6 +44,13 @@ class _Step2Last4State extends State<Step2Last4> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = isDark ? FinPilotColors.darkTextPrimary : FinPilotColors.lightTextPrimary;
+    final textSecondary = isDark ? FinPilotColors.darkTextSecondary : FinPilotColors.lightTextSecondary;
+    final textMuted = isDark ? FinPilotColors.darkTextMuted : FinPilotColors.lightTextMuted;
+    final surfaceColor = isDark ? FinPilotColors.darkSurface : FinPilotColors.lightSurface;
+    final borderColor = isDark ? FinPilotColors.darkBorder : FinPilotColors.lightBorder;
+
     final preview = AccountEntity(
       id: 'preview',
       name: widget.accountName,
@@ -60,14 +65,18 @@ class _Step2Last4State extends State<Step2Last4> {
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
       child: Column(
         children: [
-          AccountCardWidget(account: preview, height: 180),
+          AccountCardWidget(account: preview),
 
           const SizedBox(height: 32),
 
           Text(
             'Enter last 4 digits of\naccount number',
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.titleLarge,
+            style: TextStyle(
+              color: textPrimary,
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+            ),
           ),
 
           const SizedBox(height: 8),
@@ -76,10 +85,10 @@ class _Step2Last4State extends State<Step2Last4> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text(
+              Text(
                 'XXXX ',
                 style: TextStyle(
-                  color: Colors.white38,
+                  color: textMuted,
                   fontSize: 28,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 4,
@@ -93,18 +102,18 @@ class _Step2Last4State extends State<Step2Last4> {
                   maxLength: 4,
                   textAlign: TextAlign.center,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: textPrimary,
                     fontSize: 28,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 4,
                   ),
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     counterText: '',
                     border: InputBorder.none,
                     hintText: '0000',
                     hintStyle: TextStyle(
-                      color: Colors.white24,
+                      color: textMuted,
                       fontSize: 28,
                       letterSpacing: 4,
                     ),
@@ -121,23 +130,23 @@ class _Step2Last4State extends State<Step2Last4> {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: FinPilotTheme.darkSurface,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: FinPilotTheme.darkBorder),
+              color: surfaceColor,
+              borderRadius: BorderRadius.circular(CardDimensions.borderRadiusSmall),
+              border: Border.all(color: borderColor),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Icon(
                   Icons.lightbulb_outline_rounded,
-                  color: FinPilotTheme.warning,
+                  color: FinPilotColors.warning,
                   size: 18,
                 ),
                 const SizedBox(width: 10),
-                const Expanded(
+                Expanded(
                   child: Text(
                     'Account number is required to differentiate between multiple accounts from the same bank and to match transactions from email alerts.',
-                    style: TextStyle(color: Colors.white54, fontSize: 12),
+                    style: TextStyle(color: textSecondary, fontSize: 12, height: 1.4),
                   ),
                 ),
               ],
@@ -150,17 +159,20 @@ class _Step2Last4State extends State<Step2Last4> {
             children: [
               Expanded(
                 child: OutlinedButton(
-                  onPressed: widget.onBack,
+                  onPressed: () {
+                    HapticFeedback.selectionClick();
+                    widget.onBack();
+                  },
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    side: const BorderSide(color: FinPilotTheme.darkBorder),
+                    side: BorderSide(color: borderColor),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     'Back',
-                    style: TextStyle(color: Colors.white70),
+                    style: TextStyle(color: textSecondary, fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
@@ -169,9 +181,12 @@ class _Step2Last4State extends State<Step2Last4> {
                 flex: 2,
                 child: ElevatedButton(
                   onPressed: _controller.text.length == 4
-                      ? () => widget.onNext(_controller.text)
+                      ? () {
+                          HapticFeedback.lightImpact();
+                          widget.onNext(_controller.text);
+                        }
                       : null,
-                  child: const Text('Continue'),
+                  child: const Text('Continue', style: TextStyle(fontWeight: FontWeight.w700)),
                 ),
               ),
             ],

@@ -13,6 +13,7 @@ class AuthService {//creates dedicated auth persistence layer
 
   static const _tokenKey = 'auth_token';
   static const _onboardingKey = 'has_completed_onboarding';
+  static const _walkthroughKey = 'has_seen_walkthrough';
 //think of secure storage like a Map<String, String>. Your token is stored under the key "auth_token".
   Future<void> saveToken(String token) async {
     await _storage.write(key: _tokenKey, value: token);
@@ -36,6 +37,15 @@ class AuthService {//creates dedicated auth persistence layer
   Future<bool> hasCompletedOnboarding() async {
     final value=await _storage.read(key: _onboardingKey);
     return value=='true';
+  }
+
+  Future<void> completeWalkthrough() async {
+    await _storage.write(key: _walkthroughKey, value: 'true');
+  }
+
+  Future<bool> hasSeenWalkthrough() async {
+    final value = await _storage.read(key: _walkthroughKey);
+    return value == 'true';
   }
 }
 //this dependency will be injected into the AppStateNotifier.

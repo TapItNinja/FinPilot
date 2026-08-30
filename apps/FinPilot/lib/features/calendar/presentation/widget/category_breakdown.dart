@@ -1,4 +1,4 @@
-// ── Category Breakdown ────────────────────────────────────────────────────────
+// lib/features/calendar/presentation/widget/category_breakdown.dart
 import 'package:flutter/material.dart';
 import 'package:mobile_app/core/theme/app_theme.dart';
 
@@ -9,23 +9,27 @@ class CategoryBreakdown extends StatelessWidget {
   const CategoryBreakdown({super.key, required this.breakdown, required this.totalSpent});
 
   static const _colors = [
-    FinPilotTheme.primary,
-    FinPilotTheme.expense,
-    FinPilotTheme.income,
-    FinPilotTheme.warning,
-    Color(0xFF48DBFB),
-    Color(0xFF8395A7),
+    FinPilotColors.primaryDark,
+    FinPilotColors.expense,
+    FinPilotColors.income,
+    FinPilotColors.warning,
+    FinPilotColors.chartBlue,
+    FinPilotColors.chartPurple,
   ];
 
   String _fmt(double v) {
-    if (v >= 1000) {
-      return '${(v / 1000).toStringAsFixed(1)}K';
-    }
+    if (v >= 1000000) return '${(v / 1000000).toStringAsFixed(1)}M';
+    if (v >= 1000) return '${(v / 1000).toStringAsFixed(1)}K';
     return v.toStringAsFixed(0);
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surfaceColor = isDark ? FinPilotColors.darkSurface : FinPilotColors.lightSurface;
+    final borderColor = isDark ? FinPilotColors.darkBorder : FinPilotColors.lightBorder;
+    final textPrimary = isDark ? FinPilotColors.darkTextPrimary : FinPilotColors.lightTextPrimary;
+
     final sorted = breakdown.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
 
@@ -34,9 +38,9 @@ class CategoryBreakdown extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: FinPilotTheme.darkSurface,
+        color: surfaceColor,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: FinPilotTheme.darkBorder),
+        border: Border.all(color: borderColor, width: 1.2),
       ),
       child: Column(
         children: sorted.asMap().entries.map((e) {
@@ -67,19 +71,20 @@ class CategoryBreakdown extends StatelessWidget {
                         const SizedBox(width: 8),
                         Text(
                           e.value.key,
-                          style: const TextStyle(
-                            color: Colors.white70,
+                          style: TextStyle(
+                            color: textPrimary,
                             fontSize: 13,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
                     ),
                     Text(
-                      '₹${_fmt(e.value.value)}  $pct%',
+                      '\$${_fmt(e.value.value)}  $pct%',
                       style: TextStyle(
                         color: color,
                         fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ],
@@ -90,9 +95,9 @@ class CategoryBreakdown extends StatelessWidget {
                   child: LinearProgressIndicator(
                     value: barFraction,
                     minHeight: 5,
-                    backgroundColor: FinPilotTheme.darkSurface2,
+                    backgroundColor: isDark ? FinPilotColors.darkSurface2 : FinPilotColors.lightSurface2,
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      color.withValues(alpha: 0.7),
+                      color.withValues(alpha: 0.8),
                     ),
                   ),
                 ),

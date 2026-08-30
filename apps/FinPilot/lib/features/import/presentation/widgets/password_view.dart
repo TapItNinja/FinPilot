@@ -1,4 +1,4 @@
-// ── Password view ─────────────────────────────────────────────────────────────
+// lib/features/import/presentation/widgets/password_view.dart
 import 'package:flutter/material.dart';
 import 'package:mobile_app/core/theme/app_theme.dart';
 
@@ -20,6 +20,13 @@ class PasswordView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? FinPilotColors.primaryDark : FinPilotColors.primaryLight;
+    final textPrimary = isDark ? FinPilotColors.darkTextPrimary : FinPilotColors.lightTextPrimary;
+    final textSecondary = isDark ? FinPilotColors.darkTextSecondary : FinPilotColors.lightTextSecondary;
+    final surfaceColor = isDark ? FinPilotColors.darkSurface : FinPilotColors.lightSurface;
+    final borderColor = isDark ? FinPilotColors.darkBorder : FinPilotColors.lightBorder;
+
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -28,22 +35,22 @@ class PasswordView extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: FinPilotTheme.darkSurface,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: FinPilotTheme.darkBorder),
+              color: surfaceColor,
+              borderRadius: BorderRadius.circular(CardDimensions.borderRadiusSmall),
+              border: Border.all(color: borderColor),
             ),
             child: Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.picture_as_pdf_rounded,
-                  color: FinPilotTheme.primary,
+                  color: primaryColor,
                   size: 22,
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
                     fileName,
-                    style: const TextStyle(color: Colors.white, fontSize: 14),
+                    style: TextStyle(color: textPrimary, fontSize: 14, fontWeight: FontWeight.w600),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -53,18 +60,18 @@ class PasswordView extends StatelessWidget {
 
           const SizedBox(height: 32),
 
-          const Text(
+          Text(
             'Password protected?',
             style: TextStyle(
-              color: Colors.white,
+              color: textPrimary,
               fontSize: 20,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w800,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Most bank statements are password protected. Enter the password below, or leave blank if yours is not.',
-            style: TextStyle(color: Colors.white38, fontSize: 14, height: 1.5),
+            style: TextStyle(color: textSecondary, fontSize: 14, height: 1.5),
           ),
 
           const SizedBox(height: 24),
@@ -75,9 +82,9 @@ class PasswordView extends StatelessWidget {
             decoration: InputDecoration(
               labelText: 'PDF Password',
               hintText: 'Leave blank if no password',
-              prefixIcon: const Icon(
+              prefixIcon: Icon(
                 Icons.lock_outline_rounded,
-                color: Colors.white38,
+                color: textSecondary,
               ),
               errorText: errorMessage,
             ),
@@ -88,10 +95,10 @@ class PasswordView extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: FinPilotTheme.warning.withValues(alpha: 0.08),
+              color: FinPilotColors.warning.withValues(alpha: isDark ? 0.12 : 0.08),
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color: FinPilotTheme.warning.withValues(alpha: 0.2),
+                color: FinPilotColors.warning.withValues(alpha: 0.25),
               ),
             ),
             child: Row(
@@ -99,15 +106,15 @@ class PasswordView extends StatelessWidget {
               children: [
                 const Icon(
                   Icons.lightbulb_outline_rounded,
-                  color: FinPilotTheme.warning,
+                  color: FinPilotColors.warning,
                   size: 16,
                 ),
                 const SizedBox(width: 8),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'For most Indian banks, the password is your date of birth (DDMMYYYY) or PAN number. Check the email you received with the statement.',
+                    'For most banks, the password is your date of birth (DDMMYYYY) or account number / PAN number. Check the email you received with the statement.',
                     style: TextStyle(
-                      color: Colors.white54,
+                      color: isDark ? FinPilotColors.darkTextSecondary : FinPilotColors.lightTextSecondary,
                       fontSize: 12,
                       height: 1.4,
                     ),
@@ -126,14 +133,14 @@ class PasswordView extends StatelessWidget {
                   onPressed: onSkip,
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    side: const BorderSide(color: FinPilotTheme.darkBorder),
+                    side: BorderSide(color: borderColor),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     'No Password',
-                    style: TextStyle(color: Colors.white70),
+                    style: TextStyle(color: textSecondary, fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
@@ -142,7 +149,7 @@ class PasswordView extends StatelessWidget {
                 flex: 2,
                 child: ElevatedButton(
                   onPressed: onContinue,
-                  child: const Text('Continue'),
+                  child: const Text('Continue', style: TextStyle(fontWeight: FontWeight.w700)),
                 ),
               ),
             ],

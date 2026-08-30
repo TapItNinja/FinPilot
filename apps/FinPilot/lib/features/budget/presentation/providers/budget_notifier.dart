@@ -72,11 +72,12 @@ class BudgetNotifier extends AsyncNotifier<List<BudgetEntity>> {
 
 // ── Budget status provider ────────────────────────────────────────────────────
 // Computes how much has been spent against each budget.
-// Watches transactions + selected account so it stays in sync.
+// Watches transactions + selected account + unfrozen accounts so it stays in sync.
 final budgetStatusProvider = Provider<List<BudgetStatus>>((ref) {
   final budgetState = ref.watch(budgetNotifierProvider);
   final transactionState = ref.watch(transactionNotifierProvider);
   final selectedAccount = ref.watch(selectedAccountProvider);
+  final unfrozenIds = ref.watch(unfrozenAccountIdsProvider);
 
   final budgets = budgetState.asData?.value ?? [];
   final transactions = transactionState.asData?.value ?? [];
@@ -90,8 +91,9 @@ final budgetStatusProvider = Provider<List<BudgetStatus>>((ref) {
   final monthlyDebits = transactions.where((t) {
     final inMonth =
         t.timestamp.year == now.year && t.timestamp.month == now.month;
-    final inAccount =
-        selectedAccount == null || t.accountId == selectedAccount.id;
+    final inAccount = selectedAccount != null
+        ? (!selectedAccount.isFrozen && t.accountId == selectedAccount.id)
+        : unfrozenIds.contains(t.accountId);
     return inMonth && inAccount && t.type == TransactionType.debit;
   }).toList();
 

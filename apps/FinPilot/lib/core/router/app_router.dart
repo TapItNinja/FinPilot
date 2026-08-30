@@ -1,9 +1,11 @@
 // lib/core/routing/app_router.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/services.dart';
 import 'package:mobile_app/core/state/app_state_notifier.dart';
 import 'package:mobile_app/core/theme/app_theme.dart';
 import 'package:mobile_app/features/accounts/presentation/screens/setup_accounts_screen.dart';
+import 'package:mobile_app/features/onboarding/presentation/screens/app_walkthrough_screen.dart';
 import 'package:mobile_app/features/onboarding/presentation/screens/create_pin_screen.dart';
 import 'package:mobile_app/features/shell/presentation/screens/app_shell.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
@@ -20,6 +22,8 @@ class AppRouter {
         return const CreatePinScreen();
       case AppState.setupAccounts:
         return const SetupAccountsScreen();
+      case AppState.walkthrough:
+        return const AppWalkthroughScreen();
       case AppState.locked:
         return const LockScreen();
       case AppState.authenticated:
@@ -36,22 +40,24 @@ class SplashScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? FinPilotColors.primaryDark : FinPilotColors.primaryLight;
+
     return Scaffold(
-      backgroundColor: FinPilotTheme.darkBg,
-      body: const Center(
+      body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               Icons.trending_up_rounded,
-              color: FinPilotTheme.primary,
+              color: primaryColor,
               size: 56,
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text(
               'FinPilot',
               style: TextStyle(
-                color: Colors.white,
+                color: isDark ? FinPilotColors.darkTextPrimary : FinPilotColors.lightTextPrimary,
                 fontSize: 28,
                 fontWeight: FontWeight.w800,
                 letterSpacing: -1,
@@ -77,6 +83,7 @@ class _LockScreenState extends ConsumerState<LockScreen> {
   String? _errorMessage;
 
   void _onDigitTap(String digit) {
+    HapticFeedback.lightImpact();
     setState(() {
       _errorMessage = null;
       if (_pin.length < 4) {
@@ -89,6 +96,7 @@ class _LockScreenState extends ConsumerState<LockScreen> {
   }
 
   void _onDelete() {
+    HapticFeedback.selectionClick();
     setState(() {
       if (_pin.isNotEmpty) {
         _pin.removeLast();
@@ -99,8 +107,8 @@ class _LockScreenState extends ConsumerState<LockScreen> {
 
   Future<void> _tryUnlock() async {
     await ref.read(appStateProvider.notifier).unlockApp(_pin.join());
-    // If still locked, PIN was wrong
     if (ref.read(appStateProvider) == AppState.locked && mounted) {
+      HapticFeedback.heavyImpact();
       setState(() {
         _errorMessage = 'Incorrect PIN';
         _pin.clear();
@@ -110,25 +118,29 @@ class _LockScreenState extends ConsumerState<LockScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? FinPilotColors.primaryDark : FinPilotColors.primaryLight;
+    final textPrimary = isDark ? FinPilotColors.darkTextPrimary : FinPilotColors.lightTextPrimary;
+    final textMuted = isDark ? FinPilotColors.darkTextMuted : FinPilotColors.lightTextMuted;
+
     return Scaffold(
-      backgroundColor: FinPilotTheme.darkBg,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(32, 48, 32, 32),
           child: Column(
             children: [
-              const Icon(
+              Icon(
                 Icons.lock_rounded,
-                color: FinPilotTheme.primary,
+                color: primaryColor,
                 size: 40,
               ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'Enter PIN',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: textPrimary,
                   fontSize: 24,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
 
@@ -145,12 +157,12 @@ class _LockScreenState extends ConsumerState<LockScreen> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: filled
-                          ? FinPilotTheme.primary
-                          : FinPilotTheme.darkSurface2,
+                          ? primaryColor
+                          : (isDark ? FinPilotColors.darkSurface2 : FinPilotColors.lightSurface2),
                       border: Border.all(
                         color: filled
-                            ? FinPilotTheme.primary
-                            : FinPilotTheme.darkBorder,
+                            ? primaryColor
+                            : (isDark ? FinPilotColors.darkBorder : FinPilotColors.lightBorder),
                         width: 2,
                       ),
                     ),
@@ -163,8 +175,9 @@ class _LockScreenState extends ConsumerState<LockScreen> {
                 Text(
                   _errorMessage!,
                   style: const TextStyle(
-                    color: FinPilotTheme.expense,
+                    color: FinPilotColors.expense,
                     fontSize: 14,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
@@ -177,9 +190,9 @@ class _LockScreenState extends ConsumerState<LockScreen> {
 
               TextButton(
                 onPressed: () => ref.read(appStateProvider.notifier).logout(),
-                child: const Text(
+                child: Text(
                   'Sign out',
-                  style: TextStyle(color: Colors.white38, fontSize: 13),
+                  style: TextStyle(color: textMuted, fontSize: 13, fontWeight: FontWeight.w600),
                 ),
               ),
             ],
@@ -199,6 +212,10 @@ class _NumberPad extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = isDark ? FinPilotColors.darkTextPrimary : FinPilotColors.lightTextPrimary;
+    final textSecondary = isDark ? FinPilotColors.darkTextSecondary : FinPilotColors.lightTextSecondary;
+
     return Column(
       children: [
         for (final row in [
@@ -218,9 +235,9 @@ class _NumberPad extends StatelessWidget {
                 if (key == 'del') {
                   return _PadKey(
                     onTap: onDelete,
-                    child: const Icon(
+                    child: Icon(
                       Icons.backspace_outlined,
-                      color: Colors.white70,
+                      color: textSecondary,
                       size: 22,
                     ),
                   );
@@ -228,10 +245,10 @@ class _NumberPad extends StatelessWidget {
                 return _PadKey(
                   child: Text(
                     key,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: textPrimary,
                       fontSize: 24,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   onTap: () => onDigitTap(key),
@@ -252,15 +269,19 @@ class _PadKey extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         width: 80,
         height: 80,
         decoration: BoxDecoration(
-          color: FinPilotTheme.darkSurface,
+          color: isDark ? FinPilotColors.darkSurface : FinPilotColors.lightSurface,
           shape: BoxShape.circle,
-          border: Border.all(color: FinPilotTheme.darkBorder),
+          border: Border.all(
+            color: isDark ? FinPilotColors.darkBorder : FinPilotColors.lightBorder,
+          ),
         ),
         child: Center(child: child),
       ),
@@ -274,12 +295,17 @@ class ErrorScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: FinPilotTheme.darkBg,
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Scaffold(
       body: Center(
         child: Text(
           'Something went wrong',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(
+            color: isDark ? FinPilotColors.darkTextPrimary : FinPilotColors.lightTextPrimary,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
     );

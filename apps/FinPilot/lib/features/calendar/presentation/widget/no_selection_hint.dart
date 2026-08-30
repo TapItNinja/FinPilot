@@ -1,4 +1,4 @@
-// ── No Selection Hint ─────────────────────────────────────────────────────────
+// lib/features/calendar/presentation/widget/no_selection_hint.dart
 import 'package:flutter/material.dart';
 import 'package:mobile_app/core/theme/app_theme.dart';
 
@@ -7,6 +7,10 @@ class NoSelectionHint extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? FinPilotColors.primaryDark : FinPilotColors.primaryLight;
+    final textMuted = isDark ? FinPilotColors.darkTextMuted : FinPilotColors.lightTextMuted;
+
     return Padding(
       padding: const EdgeInsets.all(32),
       child: Column(
@@ -14,19 +18,23 @@ class NoSelectionHint extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: FinPilotTheme.primary.withValues(alpha: 0.1),
+              color: primaryColor.withValues(alpha: isDark ? 0.18 : 0.1),
               shape: BoxShape.circle,
             ),
-            child: const Icon(
+            child: Icon(
               Icons.touch_app_rounded,
               size: 36,
-              color: FinPilotTheme.primary,
+              color: primaryColor,
             ),
           ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'Tap a date to see transactions',
-            style: TextStyle(color: Colors.white38, fontSize: 14),
+            style: TextStyle(
+              color: textMuted,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),

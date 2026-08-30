@@ -126,6 +126,13 @@ class AppStateNotifier extends Notifier<AppState> {
       return;
     }
 
+    // Check if walkthrough has been seen
+    final hasSeenTour = await authService.hasSeenWalkthrough();
+    if (!hasSeenTour) {
+      state = AppState.walkthrough;
+      return;
+    }
+
     // Everything set up → show lock screen to enter PIN
     state = AppState.locked;
   }
@@ -149,6 +156,7 @@ class AppStateNotifier extends Notifier<AppState> {
   // Called after user sets their PIN on the create PIN screen
   Future<void> pinCreated(String pin) async {
     final pinService = ref.read(pinServiceProvider);
+    final authService = ref.read(authServiceProvider);
     await pinService.savePin(pin);
 
     // After PIN, check if accounts exist (edge case: user reinstalled app)
@@ -158,7 +166,12 @@ class AppStateNotifier extends Notifier<AppState> {
     if (accounts.isEmpty) {
       state = AppState.setupAccounts;
     } else {
-      state = AppState.authenticated;
+      final hasSeenTour = await authService.hasSeenWalkthrough();
+      if (!hasSeenTour) {
+        state = AppState.walkthrough;
+      } else {
+        state = AppState.authenticated;
+      }
     }
   }
 
@@ -166,6 +179,19 @@ class AppStateNotifier extends Notifier<AppState> {
   Future<void> accountsSetupComplete() async {
     final authService = ref.read(authServiceProvider);
     await authService.completeOnboarding();
+
+    final hasSeenTour = await authService.hasSeenWalkthrough();
+    if (!hasSeenTour) {
+      state = AppState.walkthrough;
+    } else {
+      state = AppState.authenticated;
+    }
+  }
+
+  // Called after user completes or skips the walkthrough
+  Future<void> finishWalkthrough() async {
+    final authService = ref.read(authServiceProvider);
+    await authService.completeWalkthrough();
     state = AppState.authenticated;
   }
 

@@ -15,7 +15,14 @@ import 'emi_dialog.dart';
 import 'package:mobile_app/features/import/presentation/screens/pdf_import_screen.dart';
 
 class AddTransactionScreen extends ConsumerStatefulWidget {
-  const AddTransactionScreen({super.key});
+  final DateTime? initialDate;
+  final AccountEntity? initialAccount;
+
+  const AddTransactionScreen({
+    super.key,
+    this.initialDate,
+    this.initialAccount,
+  });
 
   @override
   ConsumerState<AddTransactionScreen> createState() =>
@@ -30,9 +37,16 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   final _noteController = TextEditingController();
 
   TransactionType _selectedType = TransactionType.debit;
-  DateTime _selectedDate = DateTime.now();
+  late DateTime _selectedDate;
   bool _isSaving = false;
-  AccountEntity? _selectedAccount; // NEW — selected account
+  AccountEntity? _selectedAccount;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedDate = widget.initialDate ?? DateTime.now();
+    _selectedAccount = widget.initialAccount;
+  }
 
   @override
   void dispose() {
@@ -53,7 +67,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     final preview = TransactionEntity(
       id: 'preview',
       amount: 0,
-      currencyCode: CurrencyCode.inr,
+      currencyCode: CurrencyCode.usd,
       merchant: merchant,
       timestamp: _selectedDate,
       category: 'Uncategorized',
@@ -73,11 +87,12 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   }
 
   Future<void> _selectDate() async {
+    final now = DateTime.now();
     final picked = await showDatePicker(
       context: context,
       initialDate: _selectedDate,
       firstDate: DateTime(2020),
-      lastDate: DateTime.now(),
+      lastDate: DateTime(now.year + 2, 12, 31),
     );
     if (picked != null) {
       setState(() => _selectedDate = picked);
@@ -101,15 +116,15 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
       final transaction = TransactionEntity(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         amount: double.parse(_amountController.text.trim()),
-        currencyCode: CurrencyCode.inr,
+        currencyCode: CurrencyCode.usd,
         merchant: _merchantController.text.trim(),
         timestamp: _selectedDate,
         category: _categoryController.text.trim().isEmpty
             ? 'Uncategorized'
             : _categoryController.text.trim(),
         type: _selectedType,
-        source: _selectedAccount!.name, // account name as source
-        accountId: _selectedAccount!.id, // wire accountId
+        source: _selectedAccount!.name,
+        accountId: _selectedAccount!.id,
         status: TransactionStatus.completed,
         isRecurring: false,
         note: _noteController.text.trim().isEmpty
@@ -150,16 +165,18 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final accounts = ref.watch(accountNotifierProvider).asData?.value ?? [];
+    final accounts = ref.watch(activeAccountsProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? FinPilotColors.primaryDark : FinPilotColors.primaryLight;
+    final textMuted = isDark ? FinPilotColors.darkTextMuted : FinPilotColors.lightTextMuted;
 
     return Scaffold(
-      backgroundColor: FinPilotTheme.darkBg,
       appBar: AppBar(
         title: const Text('Add Transaction'),
-        backgroundColor: FinPilotTheme.darkBg,
+        elevation: 0,
         actions: _isSaving
-            ? [
-                const Padding(
+            ? const [
+                Padding(
                   padding: EdgeInsets.all(16),
                   child: SizedBox(
                     width: 20,
@@ -173,10 +190,10 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(20),
           children: [
             // ── Type Toggle ──────────────────────────────────────────────
-            SectionLabel('Transaction Type'),
+            const SectionLabel('Transaction Type'),
             const SizedBox(height: 8),
             TypeToggle(
               selected: _selectedType,
@@ -185,12 +202,12 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
 
             const SizedBox(height: 24),
 
-            // ── Account Picker (mini card row) ───────────────────────────
-            SectionLabel('Account'),
+            // ── Account Picker ───────────────────────────────────────────
+            const SectionLabel('Account'),
             const SizedBox(height: 4),
-            const Text(
+            Text(
               'Select which account this transaction belongs to',
-              style: TextStyle(color: Colors.white38, fontSize: 12),
+              style: TextStyle(color: textMuted, fontSize: 12),
             ),
             const SizedBox(height: 12),
             AccountPicker(
@@ -210,50 +227,52 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
               child: Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: FinPilotTheme.darkSurface,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: FinPilotTheme.darkBorder),
+                  color: isDark ? FinPilotColors.darkSurface : FinPilotColors.lightSurface,
+                  borderRadius: BorderRadius.circular(CardDimensions.borderRadiusSmall),
+                  border: Border.all(
+                    color: isDark ? FinPilotColors.darkBorder : FinPilotColors.lightBorder,
+                  ),
                 ),
                 child: Row(
                   children: [
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: FinPilotTheme.primary.withValues(alpha: 0.1),
+                        color: primaryColor.withValues(alpha: isDark ? 0.18 : 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.picture_as_pdf_rounded,
-                        color: FinPilotTheme.primary,
+                        color: primaryColor,
                         size: 18,
                       ),
                     ),
                     const SizedBox(width: 12),
-                    const Expanded(
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             'Import from PDF',
                             style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
+                              color: isDark ? FinPilotColors.darkTextPrimary : FinPilotColors.lightTextPrimary,
+                              fontWeight: FontWeight.w700,
                               fontSize: 14,
                             ),
                           ),
                           Text(
                             'Upload a bank statement',
                             style: TextStyle(
-                              color: Colors.white38,
+                              color: textMuted,
                               fontSize: 12,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const Icon(
+                    Icon(
                       Icons.chevron_right_rounded,
-                      color: Colors.white24,
+                      color: textMuted,
                     ),
                   ],
                 ),
@@ -267,12 +286,12 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
             const SizedBox(height: 16),
 
             // ── Merchant ─────────────────────────────────────────────────
-            SectionLabel('Merchant / Paid To'),
+            const SectionLabel('Merchant / Paid To'),
             const SizedBox(height: 8),
             TextFormField(
               controller: _merchantController,
               textCapitalization: TextCapitalization.words,
-              decoration: _inputDecoration('e.g. Swiggy, Amazon, KFC'),
+              decoration: _inputDecoration(context, 'e.g. Swiggy, Amazon, KFC'),
               onEditingComplete: _previewCategory,
               validator: (v) => (v == null || v.trim().isEmpty)
                   ? 'Enter merchant name'
@@ -282,7 +301,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
             const SizedBox(height: 16),
 
             // ── Amount ───────────────────────────────────────────────────
-            SectionLabel('Amount (₹)'),
+            const SectionLabel('Amount (\$)'),
             const SizedBox(height: 8),
             TextFormField(
               controller: _amountController,
@@ -292,7 +311,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
               ],
-              decoration: _inputDecoration('0.00'),
+              decoration: _inputDecoration(context, '0.00'),
               validator: (v) {
                 if (v == null || v.trim().isEmpty) {
                   return 'Enter amount';
@@ -308,7 +327,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
             const SizedBox(height: 16),
 
             // ── Date ─────────────────────────────────────────────────────
-            SectionLabel('Date'),
+            const SectionLabel('Date'),
             const SizedBox(height: 8),
             InkWell(
               onTap: _selectDate,
@@ -319,21 +338,27 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                   vertical: 14,
                 ),
                 decoration: BoxDecoration(
-                  color: FinPilotTheme.darkSurface2,
-                  border: Border.all(color: FinPilotTheme.darkBorder),
-                  borderRadius: BorderRadius.circular(12),
+                  color: isDark ? FinPilotColors.darkSurface : FinPilotColors.lightSurface,
+                  border: Border.all(
+                    color: isDark ? FinPilotColors.darkBorder : FinPilotColors.lightBorder,
+                  ),
+                  borderRadius: BorderRadius.circular(CardDimensions.borderRadiusSmall),
                 ),
                 child: Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.calendar_today_rounded,
                       size: 18,
-                      color: Colors.white54,
+                      color: textMuted,
                     ),
                     const SizedBox(width: 12),
                     Text(
                       '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
-                      style: const TextStyle(color: Colors.white, fontSize: 15),
+                      style: TextStyle(
+                        color: isDark ? FinPilotColors.darkTextPrimary : FinPilotColors.lightTextPrimary,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
@@ -343,28 +368,28 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
             const SizedBox(height: 16),
 
             // ── Category ─────────────────────────────────────────────────
-            SectionLabel('Category'),
+            const SectionLabel('Category'),
             const SizedBox(height: 4),
-            const Text(
+            Text(
               'Auto-filled from merchant name. You can edit it.',
-              style: TextStyle(fontSize: 12, color: Colors.white38),
+              style: TextStyle(fontSize: 12, color: textMuted),
             ),
             const SizedBox(height: 8),
             TextFormField(
               controller: _categoryController,
               textCapitalization: TextCapitalization.words,
-              decoration: _inputDecoration('e.g. Food, Shopping, Transport'),
+              decoration: _inputDecoration(context, 'e.g. Food, Shopping, Transport'),
             ),
 
             const SizedBox(height: 16),
 
             // ── Note ─────────────────────────────────────────────────────
-            SectionLabel('Note (optional)'),
+            const SectionLabel('Note (optional)'),
             const SizedBox(height: 8),
             TextFormField(
               controller: _noteController,
               maxLines: 2,
-              decoration: _inputDecoration('Add a note...'),
+              decoration: _inputDecoration(context, 'Add a note...'),
             ),
 
             const SizedBox(height: 32),
@@ -382,7 +407,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                       )
                     : const Text(
                         'Save Transaction',
-                        style: TextStyle(fontSize: 16),
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                       ),
               ),
             ),
@@ -394,15 +419,26 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     );
   }
 
-  InputDecoration _inputDecoration(String hint) {
+  InputDecoration _inputDecoration(BuildContext context, String hint) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return InputDecoration(
       hintText: hint,
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      filled: true,
+      fillColor: isDark ? FinPilotColors.darkSurface : FinPilotColors.lightSurface,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(CardDimensions.borderRadiusSmall),
+        borderSide: BorderSide(
+          color: isDark ? FinPilotColors.darkBorder : FinPilotColors.lightBorder,
+        ),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(CardDimensions.borderRadiusSmall),
+        borderSide: BorderSide(
+          color: isDark ? FinPilotColors.darkBorder : FinPilotColors.lightBorder,
+        ),
+      ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     );
   }
 }
-
-
-
-

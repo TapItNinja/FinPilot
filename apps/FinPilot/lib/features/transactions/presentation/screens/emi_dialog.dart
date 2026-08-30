@@ -1,18 +1,8 @@
-// WHY THIS FILE EXISTS:
-// When a debit over ₹10,000 is detected, we show this dialog asking
-// "Did you convert this to EMI?"
-//
-// If the user says yes, they enter the number of months and we update
-// the transaction with EMI details via TransactionNotifier.updateTransaction().
-//
-// If they dismiss it, the transaction is saved as-is (not an EMI).
-//
-// This is a StatefulWidget because it has local state:
-// the months field and the loading state while saving.
-//lib/features/transactions/presentation/screens/emi_dialog.dart
+// lib/features/transactions/presentation/screens/emi_dialog.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobile_app/core/theme/app_theme.dart';
 
 import '../../domain/entities/transaction_entity.dart';
 import '../providers/transaction_notifier.dart';
@@ -47,14 +37,12 @@ class _EmiDialogState extends ConsumerState<EmiDialog> {
 
     setState(() => _isSaving = true);
 
-    // Monthly amount = total / months, rounded to 2 decimal places
     final monthly = (widget.transaction.amount / months * 100).round() / 100;
 
-    // Update the transaction with EMI details using copyWith
     final updated = widget.transaction.copyWith(
       isEmi: true,
       emiMonthsTotal: months,
-      emiMonthsRemaining: months, // starts at full count
+      emiMonthsRemaining: months,
       emiMonthlyAmount: monthly,
       updatedAt: DateTime.now(),
     );
@@ -64,35 +52,50 @@ class _EmiDialogState extends ConsumerState<EmiDialog> {
         .updateTransaction(updated);
 
     if (!mounted) return;
-    Navigator.of(context).pop(); // close dialog
+    Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
-    // Format amount nicely for display
-    final amount = widget.transaction.amount.toStringAsFixed(0);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? FinPilotColors.primaryDark : FinPilotColors.primaryLight;
+    final amount = widget.transaction.amount.toStringAsFixed(2);
 
     return AlertDialog(
-      title: const Text('EMI Detected?'),
+      backgroundColor: isDark ? FinPilotColors.darkSurface : FinPilotColors.lightSurface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: Text(
+        'EMI Detected?',
+        style: TextStyle(
+          fontWeight: FontWeight.w800,
+          color: isDark ? FinPilotColors.darkTextPrimary : FinPilotColors.lightTextPrimary,
+        ),
+      ),
       content: Column(
-        mainAxisSize: MainAxisSize.min, // dialog only as tall as content
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Context — show the transaction details
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.orange.shade50,
+              color: FinPilotColors.warning.withValues(alpha: isDark ? 0.18 : 0.12),
               borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: FinPilotColors.warning.withValues(alpha: 0.3),
+              ),
             ),
             child: Row(
               children: [
-                const Icon(Icons.info_outline, color: Colors.orange, size: 18),
+                const Icon(Icons.info_outline, color: FinPilotColors.warning, size: 18),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    '₹$amount debit from ${widget.transaction.merchant}',
-                    style: const TextStyle(fontSize: 13),
+                    '\$$amount debit from ${widget.transaction.merchant}',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? FinPilotColors.darkTextPrimary : FinPilotColors.lightTextPrimary,
+                    ),
                   ),
                 ),
               ],
@@ -101,21 +104,27 @@ class _EmiDialogState extends ConsumerState<EmiDialog> {
 
           const SizedBox(height: 16),
 
-          const Text(
+          Text(
             'Was this purchase converted to EMI?',
-            style: TextStyle(fontSize: 15),
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: isDark ? FinPilotColors.darkTextPrimary : FinPilotColors.lightTextPrimary,
+            ),
           ),
 
           const SizedBox(height: 4),
 
           Text(
             'If yes, enter the number of months so we can track your EMI schedule.',
-            style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+            style: TextStyle(
+              fontSize: 13,
+              color: isDark ? FinPilotColors.darkTextSecondary : FinPilotColors.lightTextSecondary,
+            ),
           ),
 
           const SizedBox(height: 16),
 
-          // Months input — only shown if user wants to confirm EMI
           TextFormField(
             controller: _monthsController,
             keyboardType: TextInputType.number,
@@ -130,7 +139,6 @@ class _EmiDialogState extends ConsumerState<EmiDialog> {
             ),
           ),
 
-          // Preview monthly amount as user types
           ValueListenableBuilder(
             valueListenable: _monthsController,
             builder: (context, value, _) {
@@ -142,10 +150,10 @@ class _EmiDialogState extends ConsumerState<EmiDialog> {
               return Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
-                  '≈ ₹$monthly / month',
+                  '≈ \$$monthly / month',
                   style: TextStyle(
-                    color: Colors.green.shade700,
-                    fontWeight: FontWeight.w600,
+                    color: primaryColor,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               );
@@ -155,13 +163,15 @@ class _EmiDialogState extends ConsumerState<EmiDialog> {
       ),
 
       actions: [
-        // "Not an EMI" — dismisses without updating
         TextButton(
           onPressed: _isSaving ? null : () => Navigator.of(context).pop(),
-          child: const Text('Not an EMI'),
+          child: Text(
+            'Not an EMI',
+            style: TextStyle(
+              color: isDark ? FinPilotColors.darkTextMuted : FinPilotColors.lightTextMuted,
+            ),
+          ),
         ),
-
-        // "Yes, it's EMI" — saves EMI details
         ElevatedButton(
           onPressed: _isSaving ? null : _confirmEmi,
           child: _isSaving

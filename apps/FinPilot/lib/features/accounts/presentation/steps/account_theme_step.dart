@@ -1,5 +1,5 @@
-// ── Step 3: Theme picker ──────────────────────────────────────────────────────
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:mobile_app/core/utils/card_gradient_helper.dart';
 import 'package:mobile_app/features/accounts/domain/entities/account_entity.dart';
 import 'package:mobile_app/features/accounts/presentation/widgets/account_card_widget.dart';
@@ -38,6 +38,11 @@ class _Step3ThemeState extends State<Step3Theme> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = isDark ? FinPilotColors.darkTextPrimary : FinPilotColors.lightTextPrimary;
+    final textSecondary = isDark ? FinPilotColors.darkTextSecondary : FinPilotColors.lightTextSecondary;
+    final borderColor = isDark ? FinPilotColors.darkBorder : FinPilotColors.lightBorder;
+
     final preview = AccountEntity(
       id: 'preview',
       name: widget.accountName,
@@ -53,13 +58,17 @@ class _Step3ThemeState extends State<Step3Theme> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          AccountCardWidget(account: preview, height: 160),
+          AccountCardWidget(account: preview),
 
           const SizedBox(height: 24),
 
           Text(
             'Choose a theme',
-            style: Theme.of(context).textTheme.titleMedium,
+            style: TextStyle(
+              color: textPrimary,
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+            ),
           ),
 
           const SizedBox(height: 16),
@@ -80,7 +89,10 @@ class _Step3ThemeState extends State<Step3Theme> {
                 final isSelected = theme == _selected;
 
                 return GestureDetector(
-                  onTap: () => setState(() => _selected = theme),
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    setState(() => _selected = theme);
+                  },
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     decoration: BoxDecoration(
@@ -120,17 +132,20 @@ class _Step3ThemeState extends State<Step3Theme> {
             children: [
               Expanded(
                 child: OutlinedButton(
-                  onPressed: widget.onBack,
+                  onPressed: () {
+                    HapticFeedback.selectionClick();
+                    widget.onBack();
+                  },
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    side: const BorderSide(color: FinPilotTheme.darkBorder),
+                    side: BorderSide(color: borderColor),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     'Back',
-                    style: TextStyle(color: Colors.white70),
+                    style: TextStyle(color: textSecondary, fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
@@ -138,8 +153,11 @@ class _Step3ThemeState extends State<Step3Theme> {
               Expanded(
                 flex: 2,
                 child: ElevatedButton(
-                  onPressed: () => widget.onNext(_selected),
-                  child: const Text('Create Account'),
+                  onPressed: () {
+                    HapticFeedback.mediumImpact();
+                    widget.onNext(_selected);
+                  },
+                  child: const Text('Create Account', style: TextStyle(fontWeight: FontWeight.w700)),
                 ),
               ),
             ],

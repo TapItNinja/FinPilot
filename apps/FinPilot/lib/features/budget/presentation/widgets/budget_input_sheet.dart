@@ -1,9 +1,8 @@
-// ── Budget Input Bottom Sheet ─────────────────────────────────────────────────
-// ignore_for_file: unused_element_parameter
-
+// lib/features/budget/presentation/widgets/budget_input_sheet.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mobile_app/core/theme/app_theme.dart';
+
 class BudgetInputSheet extends StatefulWidget {
   final String title;
   final double? current;
@@ -15,8 +14,6 @@ class BudgetInputSheet extends StatefulWidget {
     required this.title,
     required this.onSave,
     this.current,
-    // ignore: duplicate_ignore
-    // ignore: unused_element_parameter
     this.onDelete,
   });
 
@@ -43,11 +40,16 @@ class _BudgetInputSheetState extends State<BudgetInputSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? FinPilotColors.primaryDark : FinPilotColors.primaryLight;
+    final textPrimary = isDark ? FinPilotColors.darkTextPrimary : FinPilotColors.lightTextPrimary;
+    final textMuted = isDark ? FinPilotColors.darkTextMuted : FinPilotColors.lightTextMuted;
+
     return Padding(
       padding: EdgeInsets.only(
         left: 24,
         right: 24,
-        top: 24,
+        top: 20,
         bottom: MediaQuery.of(context).viewInsets.bottom + 32,
       ),
       child: Column(
@@ -60,7 +62,7 @@ class _BudgetInputSheetState extends State<BudgetInputSheet> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.white24,
+                color: isDark ? Colors.white24 : Colors.black12,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -73,10 +75,11 @@ class _BudgetInputSheetState extends State<BudgetInputSheet> {
             children: [
               Text(
                 widget.title,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: textPrimary,
                   fontSize: 18,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.3,
                 ),
               ),
               if (widget.onDelete != null)
@@ -84,7 +87,7 @@ class _BudgetInputSheetState extends State<BudgetInputSheet> {
                   onPressed: widget.onDelete,
                   icon: const Icon(
                     Icons.delete_outline_rounded,
-                    color: FinPilotTheme.expense,
+                    color: FinPilotColors.expense,
                   ),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
@@ -94,15 +97,15 @@ class _BudgetInputSheetState extends State<BudgetInputSheet> {
 
           const SizedBox(height: 20),
 
-          // Amount input with ₹ prefix
+          // Amount input with $ prefix
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const Text(
-                '₹',
+              Text(
+                '\$',
                 style: TextStyle(
-                  color: Colors.white54,
-                  fontSize: 28,
+                  color: primaryColor,
+                  fontSize: 32,
                   fontWeight: FontWeight.w300,
                 ),
               ),
@@ -113,14 +116,14 @@ class _BudgetInputSheetState extends State<BudgetInputSheet> {
                   autofocus: true,
                   keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: textPrimary,
                     fontSize: 32,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w800,
                   ),
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     hintText: '0',
-                    hintStyle: TextStyle(color: Colors.white24, fontSize: 32),
+                    hintStyle: TextStyle(color: textMuted, fontSize: 32),
                     border: InputBorder.none,
                     enabledBorder: InputBorder.none,
                     focusedBorder: InputBorder.none,
@@ -130,12 +133,12 @@ class _BudgetInputSheetState extends State<BudgetInputSheet> {
             ],
           ),
 
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
 
           // Quick amount chips
           Wrap(
             spacing: 8,
-            children: [5000, 10000, 15000, 20000, 50000].map((amount) {
+            children: [500, 1000, 2000, 3000, 5000].map((amount) {
               return GestureDetector(
                 onTap: () =>
                     setState(() => _controller.text = amount.toString()),
@@ -145,13 +148,19 @@ class _BudgetInputSheetState extends State<BudgetInputSheet> {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: FinPilotTheme.darkSurface2,
+                    color: isDark ? FinPilotColors.darkSurface2 : FinPilotColors.lightSurface2,
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: FinPilotTheme.darkBorder),
+                    border: Border.all(
+                      color: isDark ? FinPilotColors.darkBorder : FinPilotColors.lightBorder,
+                    ),
                   ),
                   child: Text(
-                    '₹${amount >= 1000 ? '${amount ~/ 1000}K' : amount}',
-                    style: const TextStyle(color: Colors.white54, fontSize: 12),
+                    '\$${amount >= 1000 ? '${amount ~/ 1000}K' : amount}',
+                    style: TextStyle(
+                      color: textPrimary,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               );
@@ -173,6 +182,7 @@ class _BudgetInputSheetState extends State<BudgetInputSheet> {
               },
               child: Text(
                 widget.current != null ? 'Update Budget' : 'Set Budget',
+                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
               ),
             ),
           ),

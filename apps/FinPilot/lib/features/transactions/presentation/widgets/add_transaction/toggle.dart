@@ -1,5 +1,4 @@
-//lib/features/transactions/presentation/widgets/add_transaction/toggle.dart
-// ── Type Toggle ───────────────────────────────────────────────────────────────
+// lib/features/transactions/presentation/widgets/add_transaction/toggle.dart
 import 'package:flutter/material.dart';
 import 'package:mobile_app/core/theme/app_theme.dart';
 import 'package:mobile_app/features/transactions/domain/entities/transaction_entity.dart';
@@ -16,9 +15,9 @@ class TypeToggle extends StatelessWidget {
       children: [
         Expanded(
           child: _ToggleOption(
-            label: 'Debit',
+            label: 'Debit (Expense)',
             icon: Icons.arrow_upward_rounded,
-            color: FinPilotTheme.expense,
+            color: FinPilotColors.expense,
             isSelected: selected == TransactionType.debit,
             onTap: () => onChanged(TransactionType.debit),
           ),
@@ -26,9 +25,9 @@ class TypeToggle extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(
           child: _ToggleOption(
-            label: 'Credit',
+            label: 'Credit (Income)',
             icon: Icons.arrow_downward_rounded,
-            color: FinPilotTheme.income,
+            color: FinPilotColors.income,
             isSelected: selected == TransactionType.credit,
             onTap: () => onChanged(TransactionType.credit),
           ),
@@ -55,6 +54,11 @@ class _ToggleOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surfaceColor = isDark ? FinPilotColors.darkSurface : FinPilotColors.lightSurface;
+    final borderColor = isDark ? FinPilotColors.darkBorder : FinPilotColors.lightBorder;
+    final textMuted = isDark ? FinPilotColors.darkTextMuted : FinPilotColors.lightTextMuted;
+
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -62,24 +66,25 @@ class _ToggleOption extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
           color: isSelected
-              ? color.withValues(alpha: 0.12)
-              : FinPilotTheme.darkSurface,
+              ? color.withValues(alpha: isDark ? 0.18 : 0.1)
+              : surfaceColor,
           border: Border.all(
-            color: isSelected ? color : FinPilotTheme.darkBorder,
+            color: isSelected ? color : borderColor,
             width: isSelected ? 2 : 1,
           ),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(CardDimensions.borderRadiusSmall),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: isSelected ? color : Colors.white38, size: 18),
+            Icon(icon, color: isSelected ? color : textMuted, size: 18),
             const SizedBox(width: 8),
             Text(
               label,
               style: TextStyle(
-                color: isSelected ? color : Colors.white38,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected ? color : textMuted,
+                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
+                fontSize: 13,
               ),
             ),
           ],

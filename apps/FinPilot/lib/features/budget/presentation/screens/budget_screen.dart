@@ -7,6 +7,7 @@ import 'package:mobile_app/features/budget/presentation/widgets/add_category_but
 import 'package:mobile_app/features/budget/presentation/widgets/budget_input_sheet.dart';
 import 'package:mobile_app/features/budget/presentation/widgets/budget_status_card.dart';
 import 'package:mobile_app/features/budget/presentation/widgets/section_header.dart';
+import 'package:mobile_app/features/profile/presentation/screens/profile_screen.dart';
 
 import '../providers/budget_notifier.dart';
 
@@ -29,6 +30,8 @@ class BudgetScreen extends ConsumerWidget {
     final budgetState = ref.watch(budgetNotifierProvider);
     final statuses = ref.watch(budgetStatusProvider);
     final now = DateTime.now();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? FinPilotColors.primaryDark : FinPilotColors.primaryLight;
 
     final monthNames = [
       '',
@@ -47,22 +50,35 @@ class BudgetScreen extends ConsumerWidget {
     ];
 
     return Scaffold(
-      backgroundColor: FinPilotTheme.darkBg,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        title: Text('${monthNames[now.month]} Budget'),
+        elevation: 0,
+        title: Text(
+          '${monthNames[now.month]} Budget',
+          style: TextStyle(
+            fontWeight: FontWeight.w800,
+            color: isDark ? FinPilotColors.darkTextPrimary : FinPilotColors.lightTextPrimary,
+          ),
+        ),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16),
-            child: CircleAvatar(
-              radius: 18,
-              backgroundColor: FinPilotTheme.primary.withValues(alpha: 0.2),
-              child: const Text(
-                'P',
-                style: TextStyle(
-                  color: FinPilotTheme.primary,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
+            child: GestureDetector(
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                );
+              },
+              child: CircleAvatar(
+                radius: 18,
+                backgroundColor: primaryColor.withValues(alpha: isDark ? 0.2 : 0.12),
+                child: Text(
+                  'F',
+                  style: TextStyle(
+                    color: primaryColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
                 ),
               ),
             ),
@@ -73,7 +89,6 @@ class BudgetScreen extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
         data: (_) {
-          // Find existing budgets
           final overallStatus = statuses
               .where((s) => s.budget.isOverall)
               .firstOrNull;
@@ -82,7 +97,7 @@ class BudgetScreen extends ConsumerWidget {
               .toList();
 
           return ListView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
             children: [
               // ── Overall Budget ─────────────────────────────────────
               SectionHeader(
@@ -123,13 +138,12 @@ class BudgetScreen extends ConsumerWidget {
               const SizedBox(height: 28),
 
               // ── Category Budgets ───────────────────────────────────
-              SectionHeader(
+              const SectionHeader(
                 title: 'Category Budgets',
                 subtitle: 'Optional limits per spending category',
               ),
               const SizedBox(height: 12),
 
-              // Show existing category budgets
               ...categoryStatuses.map(
                 (status) => Padding(
                   padding: const EdgeInsets.only(bottom: 10),
@@ -151,7 +165,6 @@ class BudgetScreen extends ConsumerWidget {
                 ),
               ),
 
-              // Categories without budgets — show add buttons
               ..._categories
                   .where(
                     (cat) =>
@@ -190,10 +203,12 @@ class BudgetScreen extends ConsumerWidget {
     required void Function(double) onSave,
     VoidCallback? onDelete,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: FinPilotTheme.darkSurface,
+      backgroundColor: isDark ? FinPilotColors.darkSurface : FinPilotColors.lightSurface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -214,6 +229,3 @@ class BudgetScreen extends ConsumerWidget {
     );
   }
 }
-
-
-

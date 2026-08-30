@@ -80,11 +80,12 @@ final _budgetWatchProvider = Provider<double>((ref) {
   return 20000.0; // Will be replaced when budget feature is wired in statistics
 });
 
-// Now watches selectedAccountProvider so charts filter when account changes
+// Now watches selectedAccountProvider and unfrozenAccountIdsProvider so charts filter when account changes
 final statisticsDataProvider = Provider<StatisticsData>((ref) {
   final period = ref.watch(statisticsPeriodProvider);
   final transactionState = ref.watch(transactionNotifierProvider);
   final selectedAccount = ref.watch(selectedAccountProvider);
+  final unfrozenIds = ref.watch(unfrozenAccountIdsProvider);
   // Watch real budget — imported lazily to avoid circular dependency
   ref.watch(_budgetWatchProvider);
 
@@ -92,12 +93,24 @@ final statisticsDataProvider = Provider<StatisticsData>((ref) {
     loading: () => StatisticsData.empty,
     error: (_, _) => StatisticsData.empty,
     data: (transactions) {
-      // Filter by selected account if one is active
-      final filtered = selectedAccount == null
-          ? transactions
-          : transactions
-                .where((t) => t.accountId == selectedAccount.id)
-                .toList();
+      if (selectedAccount != null) {
+        if (selectedAccount.isFrozen || !unfrozenIds.contains(selectedAccount.id)) {
+          return StatisticsData.empty;
+        }
+        final filtered = transactions
+            .where((t) => t.accountId == selectedAccount.id)
+            .toList();
+        return computeStatistics(
+          filtered,
+          period,
+          ref.read(_budgetWatchProvider),
+        );
+      }
+
+      // Overall mode: exclude frozen accounts
+      final filtered = transactions
+          .where((t) => unfrozenIds.contains(t.accountId))
+          .toList();
       return computeStatistics(
         filtered,
         period,

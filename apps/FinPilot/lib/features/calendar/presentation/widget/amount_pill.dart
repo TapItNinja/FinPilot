@@ -1,4 +1,4 @@
-// ── Amount Pill ───────────────────────────────────────────────────────────────
+// lib/features/calendar/presentation/widget/amount_pill.dart
 import 'package:flutter/material.dart';
 
 class AmountPill extends StatelessWidget {
@@ -14,12 +14,8 @@ class AmountPill extends StatelessWidget {
   });
 
   String _fmt(double v) {
-    if (v >= 100000) {
-      return '${(v / 100000).toStringAsFixed(1)}L';
-    }
-    if (v >= 1000) {
-      return '${(v / 1000).toStringAsFixed(1)}K';
-    }
+    if (v >= 1000000) return '${(v / 1000000).toStringAsFixed(1)}M';
+    if (v >= 1000) return '${(v / 1000).toStringAsFixed(1)}K';
     return v.toStringAsFixed(0);
   }
 
@@ -33,11 +29,11 @@ class AmountPill extends StatelessWidget {
         border: Border.all(color: color.withValues(alpha: 0.25)),
       ),
       child: Text(
-        '$prefix₹${_fmt(amount)}',
+        '$prefix\$${_fmt(amount)}',
         style: TextStyle(
           color: color,
           fontWeight: FontWeight.w700,
-          fontSize: 14,
+          fontSize: 13,
         ),
       ),
     );

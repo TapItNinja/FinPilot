@@ -1,4 +1,6 @@
+// lib/features/onboarding/presentation/widgets/number_pad.dart
 import 'package:flutter/material.dart';
+import 'package:mobile_app/core/theme/app_theme.dart';
 import 'package:mobile_app/features/onboarding/presentation/widgets/pad_key.dart';
 
 class NumberPad extends StatelessWidget {
@@ -9,6 +11,10 @@ class NumberPad extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = isDark ? FinPilotColors.darkTextPrimary : FinPilotColors.lightTextPrimary;
+    final textSecondary = isDark ? FinPilotColors.darkTextSecondary : FinPilotColors.lightTextSecondary;
+
     return Column(
       children: [
         for (final row in [
@@ -28,9 +34,9 @@ class NumberPad extends StatelessWidget {
                 if (key == 'del') {
                   return PadKey(
                     onTap: onDelete,
-                    child: const Icon(
+                    child: Icon(
                       Icons.backspace_outlined,
-                      color: Colors.white70,
+                      color: textSecondary,
                       size: 22,
                     ),
                   );
@@ -38,10 +44,10 @@ class NumberPad extends StatelessWidget {
                 return PadKey(
                   child: Text(
                     key,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: textPrimary,
                       fontSize: 24,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   onTap: () => onDigitTap(key),

@@ -1,6 +1,6 @@
+// lib/features/statistics/presentation/widgets/summary_row.dart
 import 'package:flutter/material.dart';
 import 'package:mobile_app/core/theme/app_theme.dart';
-
 import '../providers/statistics_notifier.dart';
 
 class SummaryRow extends StatelessWidget {
@@ -8,7 +8,7 @@ class SummaryRow extends StatelessWidget {
   const SummaryRow({super.key, required this.data});
 
   String _fmt(double v) {
-    if (v >= 100000) return '${(v / 100000).toStringAsFixed(1)}L';
+    if (v >= 1000000) return '${(v / 1000000).toStringAsFixed(1)}M';
     if (v >= 1000) return '${(v / 1000).toStringAsFixed(1)}K';
     return v.toStringAsFixed(0);
   }
@@ -20,8 +20,8 @@ class SummaryRow extends StatelessWidget {
         Expanded(
           child: SummaryTile(
             label: 'Total Spent',
-            value: '₹${_fmt(data.totalSpent)}',
-            color: FinPilotTheme.expense,
+            value: '\$${_fmt(data.totalSpent)}',
+            color: FinPilotColors.expense,
             icon: Icons.north_east_rounded,
           ),
         ),
@@ -29,8 +29,8 @@ class SummaryRow extends StatelessWidget {
         Expanded(
           child: SummaryTile(
             label: 'Total Income',
-            value: '₹${_fmt(data.totalIncome)}',
-            color: FinPilotTheme.income,
+            value: '\$${_fmt(data.totalIncome)}',
+            color: FinPilotColors.income,
             icon: Icons.south_west_rounded,
           ),
         ),
@@ -44,6 +44,7 @@ class SummaryTile extends StatelessWidget {
   final String value;
   final Color color;
   final IconData icon;
+
   const SummaryTile({
     super.key,
     required this.label,
@@ -54,42 +55,54 @@ class SummaryTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: FinPilotTheme.darkSurface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: FinPilotTheme.darkBorder),
+        color: isDark ? FinPilotColors.darkSurface : FinPilotColors.lightSurface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isDark ? FinPilotColors.darkBorder : FinPilotColors.lightBorder,
+          width: 1.2,
+        ),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
+              color: color.withValues(alpha: isDark ? 0.2 : 0.12),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: color, size: 16),
           ),
           const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(color: Colors.white38, fontSize: 11),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                value,
-                style: TextStyle(
-                  color: color,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.5,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: isDark ? FinPilotColors.darkTextMuted : FinPilotColors.lightTextMuted,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: TextStyle(
+                    color: isDark ? FinPilotColors.darkTextPrimary : FinPilotColors.lightTextPrimary,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.5,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
         ],
       ),

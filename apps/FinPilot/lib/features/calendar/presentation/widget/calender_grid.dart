@@ -1,5 +1,6 @@
-// ── Calendar Grid ─────────────────────────────────────────────────────────────
+// lib/features/calendar/presentation/widget/calender_grid.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_app/core/theme/app_theme.dart';
 import 'package:mobile_app/features/calendar/presentation/providers/calendar_notifier.dart';
@@ -28,12 +29,19 @@ class CalendarGrid extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dailyTotals = ref.watch(dailyTotalsProvider);
+    final monthlySummary = ref.watch(monthlySummaryProvider);
+    final recurringDays = ref.watch(recurringDaysProvider);
     final viewingMonth = calendarState.viewingMonth;
     final selectedDate = calendarState.selectedDate;
     final now = DateTime.now();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? FinPilotColors.primaryDark : FinPilotColors.primaryLight;
+    final onPrimary = isDark ? FinPilotColors.onPrimaryDark : Colors.white;
+    final surfaceColor = isDark ? FinPilotColors.darkSurface : FinPilotColors.lightSurface;
+    final borderColor = isDark ? FinPilotColors.darkBorder : FinPilotColors.lightBorder;
+    final textPrimary = isDark ? FinPilotColors.darkTextPrimary : FinPilotColors.lightTextPrimary;
+    final textMuted = isDark ? FinPilotColors.darkTextMuted : FinPilotColors.lightTextMuted;
 
-    // Build calendar days
-    // First day of month (1 = Monday, 7 = Sunday in DateTime.weekday)
     final firstDay = DateTime(viewingMonth.year, viewingMonth.month, 1);
     final daysInMonth = DateTime(
       viewingMonth.year,
@@ -41,15 +49,10 @@ class CalendarGrid extends ConsumerWidget {
       0,
     ).day;
 
-    // Offset: how many empty cells before day 1
-    // DateTime.weekday: 1=Mon, 7=Sun. We want Mon=0 offset.
     final startOffset = firstDay.weekday - 1;
-
-    // Total cells = offset + days in month, rounded up to full weeks
     final totalCells = startOffset + daysInMonth;
     final rows = (totalCells / 7).ceil();
 
-    // Max daily spend in this month for dot intensity scaling
     final maxSpend = dailyTotals.values.isEmpty
         ? 1.0
         : dailyTotals.values.reduce((a, b) => a > b ? a : b);
@@ -58,62 +61,99 @@ class CalendarGrid extends ConsumerWidget {
       margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: FinPilotTheme.darkSurface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: FinPilotTheme.darkBorder),
+        color: surfaceColor,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: borderColor, width: 1.2),
       ),
       child: Column(
         children: [
-          // Month navigator
+          // ── Month Navigator Header ────────────────────────────────
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               IconButton(
-                onPressed: () =>
-                    ref.read(calendarProvider.notifier).goToPreviousMonth(),
-                icon: const Icon(
+                onPressed: () {
+                  HapticFeedback.selectionClick();
+                  ref.read(calendarProvider.notifier).goToPreviousMonth();
+                },
+                icon: Icon(
                   Icons.chevron_left_rounded,
-                  color: Colors.white70,
+                  color: isDark ? FinPilotColors.darkTextPrimary : FinPilotColors.lightTextPrimary,
+                  size: 24,
                 ),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
               ),
               Text(
                 '${_monthNames[viewingMonth.month]} ${viewingMonth.year}',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
+                style: TextStyle(
                   fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: textPrimary,
+                  letterSpacing: -0.2,
                 ),
               ),
               IconButton(
-                onPressed: () =>
-                    ref.read(calendarProvider.notifier).goToNextMonth(),
+                onPressed: () {
+                  HapticFeedback.selectionClick();
+                  ref.read(calendarProvider.notifier).goToNextMonth();
+                },
                 icon: Icon(
                   Icons.chevron_right_rounded,
-                  color: _isCurrentMonth(viewingMonth, now)
-                      ? Colors.white24
-                      : Colors.white70,
+                  color: isDark ? FinPilotColors.darkTextPrimary : FinPilotColors.lightTextPrimary,
+                  size: 24,
                 ),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
               ),
             ],
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
 
-          // Weekday headers
+          // ── Month Cashflow Summary Pill ───────────────────────────
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: isDark ? FinPilotColors.darkSurface2 : FinPilotColors.lightSurface2,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: borderColor),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _SummaryPillItem(
+                  label: 'Inflow',
+                  amount: monthlySummary.totalIncome,
+                  color: FinPilotColors.income,
+                ),
+                Container(width: 1, height: 16, color: borderColor),
+                _SummaryPillItem(
+                  label: 'Outflow',
+                  amount: monthlySummary.totalExpenses,
+                  color: FinPilotColors.expense,
+                ),
+                Container(width: 1, height: 16, color: borderColor),
+                _SummaryPillItem(
+                  label: 'Net',
+                  amount: monthlySummary.netCashflow,
+                  color: monthlySummary.netCashflow >= 0 ? FinPilotColors.income : FinPilotColors.expense,
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 14),
+
+          // ── Weekday Labels Header ─────────────────────────────────
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: _weekDays.map((d) {
-              return Expanded(
+              return SizedBox(
+                width: 36,
                 child: Center(
                   child: Text(
                     d,
-                    style: const TextStyle(
-                      color: Colors.white38,
+                    style: TextStyle(
                       fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
+                      color: textMuted,
                     ),
                   ),
                 ),
@@ -123,109 +163,118 @@ class CalendarGrid extends ConsumerWidget {
 
           const SizedBox(height: 8),
 
-          // Calendar grid
-          ...List.generate(rows, (row) {
+          // ── Calendar Month Grid ───────────────────────────────────
+          ...List.generate(rows, (rowIndex) {
             return Padding(
-              padding: const EdgeInsets.only(bottom: 4),
+              padding: const EdgeInsets.symmetric(vertical: 3),
               child: Row(
-                children: List.generate(7, (col) {
-                  final cellIndex = row * 7 + col;
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: List.generate(7, (colIndex) {
+                  final cellIndex = rowIndex * 7 + colIndex;
                   final dayNumber = cellIndex - startOffset + 1;
 
                   if (dayNumber < 1 || dayNumber > daysInMonth) {
-                    return const Expanded(child: SizedBox());
+                    return const SizedBox(width: 36, height: 42);
                   }
 
-                  final date = DateTime(
+                  final cellDate = DateTime(
                     viewingMonth.year,
                     viewingMonth.month,
                     dayNumber,
                   );
+                  final isToday = cellDate.year == now.year &&
+                      cellDate.month == now.month &&
+                      cellDate.day == now.day;
+                  final isSelected = selectedDate != null &&
+                      cellDate.year == selectedDate.year &&
+                      cellDate.month == selectedDate.month &&
+                      cellDate.day == selectedDate.day;
 
-                  final isToday =
-                      date.year == now.year &&
-                      date.month == now.month &&
-                      date.day == now.day;
+                  final spend = dailyTotals[cellDate] ?? 0.0;
+                  final hasSpend = spend > 0;
+                  final spendFraction = maxSpend > 0 ? (spend / maxSpend).clamp(0.0, 1.0) : 0.0;
+                  final hasRecurring = recurringDays.contains(dayNumber);
 
-                  final isSelected =
-                      selectedDate != null &&
-                      selectedDate.year == date.year &&
-                      selectedDate.month == date.month &&
-                      selectedDate.day == date.day;
-
-                  final isFuture = date.isAfter(
-                    DateTime(now.year, now.month, now.day),
-                  );
-
-                  final daySpend = dailyTotals[date];
-                  final hasTransactions = daySpend != null && daySpend > 0;
-
-                  // Dot intensity based on spend relative to max
-                  final intensity = hasTransactions
-                      ? (daySpend / maxSpend).clamp(0.2, 1.0)
-                      : 0.0;
-
-                  return Expanded(
-                    child: GestureDetector(
-                      onTap: isFuture
-                          ? null
-                          : () => ref
-                                .read(calendarProvider.notifier)
-                                .selectDate(date),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        height: 44,
-                        margin: const EdgeInsets.symmetric(horizontal: 2),
-                        decoration: BoxDecoration(
+                  return GestureDetector(
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      ref.read(calendarProvider.notifier).selectDate(cellDate);
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      width: 36,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? primaryColor
+                            : (hasSpend
+                                ? FinPilotColors.expense.withValues(
+                                    alpha: (0.08 + spendFraction * 0.18).clamp(0.08, 0.26),
+                                  )
+                                : Colors.transparent),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
                           color: isSelected
-                              ? FinPilotTheme.primary
-                              : isToday
-                              ? FinPilotTheme.primary.withValues(alpha: 0.15)
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(10),
-                          border: isToday && !isSelected
-                              ? Border.all(
-                                  color: FinPilotTheme.primary.withValues(
-                                    alpha: 0.5,
+                              ? primaryColor
+                              : (isToday
+                                  ? primaryColor.withValues(alpha: isDark ? 0.6 : 0.8)
+                                  : (hasSpend
+                                      ? FinPilotColors.expense.withValues(
+                                          alpha: (0.15 + spendFraction * 0.35).clamp(0.15, 0.5),
+                                        )
+                                      : Colors.transparent)),
+                          width: isToday ? 1.5 : 1,
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            '$dayNumber',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: isSelected || isToday
+                                  ? FontWeight.w800
+                                  : FontWeight.w600,
+                              color: isSelected
+                                  ? onPrimary
+                                  : (isToday
+                                      ? primaryColor
+                                      : textPrimary),
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          // Dot indicator for spending & recurring bills
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              if (hasSpend)
+                                Container(
+                                  width: 4,
+                                  height: 4,
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? onPrimary
+                                        : FinPilotColors.expense,
+                                    shape: BoxShape.circle,
                                   ),
-                                )
-                              : null,
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              '$dayNumber',
-                              style: TextStyle(
-                                color: isFuture
-                                    ? Colors.white24
-                                    : isSelected
-                                    ? Colors.white
-                                    : Colors.white,
-                                fontSize: 14,
-                                fontWeight: isSelected || isToday
-                                    ? FontWeight.w700
-                                    : FontWeight.normal,
-                              ),
-                            ),
-                            const SizedBox(height: 3),
-                            // Spend dot
-                            Container(
-                              width: 5,
-                              height: 5,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: hasTransactions
-                                    ? (isSelected
-                                          ? Colors.white.withValues(alpha: 0.8)
-                                          : FinPilotTheme.expense.withValues(
-                                              alpha: intensity,
-                                            ))
-                                    : Colors.transparent,
-                              ),
-                            ),
-                          ],
-                        ),
+                                ),
+                              if (hasRecurring) ...[
+                                if (hasSpend) const SizedBox(width: 2),
+                                Container(
+                                  width: 4,
+                                  height: 4,
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? onPrimary
+                                        : FinPilotColors.chartPurple,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ],
                       ),
                     ),
                   );
@@ -237,8 +286,42 @@ class CalendarGrid extends ConsumerWidget {
       ),
     );
   }
+}
 
-  bool _isCurrentMonth(DateTime viewing, DateTime now) {
-    return viewing.year == now.year && viewing.month == now.month;
+class _SummaryPillItem extends StatelessWidget {
+  final String label;
+  final double amount;
+  final Color color;
+
+  const _SummaryPillItem({
+    required this.label,
+    required this.amount,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+            color: Colors.grey,
+          ),
+        ),
+        const SizedBox(height: 1),
+        Text(
+          '\$${amount.abs().toStringAsFixed(0)}',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w800,
+            color: color,
+          ),
+        ),
+      ],
+    );
   }
 }

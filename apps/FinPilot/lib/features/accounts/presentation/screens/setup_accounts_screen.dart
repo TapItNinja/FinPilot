@@ -1,8 +1,4 @@
 // lib/features/accounts/presentation/screens/setup_accounts_screen.dart
-//
-// Shown after PIN creation on first launch.
-// User must add at least one account before entering the app.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_app/core/state/app_state_notifier.dart';
@@ -17,9 +13,12 @@ class SetupAccountsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final accountsState = ref.watch(accountNotifierProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? FinPilotColors.primaryDark : FinPilotColors.primaryLight;
+    final textPrimary = isDark ? FinPilotColors.darkTextPrimary : FinPilotColors.lightTextPrimary;
+    final textMuted = isDark ? FinPilotColors.darkTextMuted : FinPilotColors.lightTextMuted;
 
     return Scaffold(
-      backgroundColor: FinPilotTheme.darkBg,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(24, 32, 24, 32),
@@ -27,10 +26,10 @@ class SetupAccountsScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header
-              const Text(
+              Text(
                 'Setup your\naccounts',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: textPrimary,
                   fontSize: 32,
                   fontWeight: FontWeight.w800,
                   letterSpacing: -1,
@@ -40,9 +39,9 @@ class SetupAccountsScreen extends ConsumerWidget {
 
               const SizedBox(height: 8),
 
-              const Text(
+              Text(
                 'Add your bank accounts and credit cards to start tracking.',
-                style: TextStyle(color: Colors.white38, fontSize: 15),
+                style: TextStyle(color: textMuted, fontSize: 15),
               ),
 
               const SizedBox(height: 32),
@@ -59,7 +58,7 @@ class SetupAccountsScreen extends ConsumerWidget {
                     children: accounts.map((account) {
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 12),
-                        child: AccountCardWidget(account: account, height: 120),
+                        child: AccountCardWidget(account: account),
                       );
                     }).toList(),
                   );
@@ -74,8 +73,6 @@ class SetupAccountsScreen extends ConsumerWidget {
                       builder: (_) => const AddAccountFlow(isFirstSetup: true),
                     ),
                   );
-                  // result = true means account was created
-                  // Check if we should proceed to app
                   if (result == true) {
                     final accounts = await ref
                         .read(accountRepositoryProvider)
@@ -90,10 +87,10 @@ class SetupAccountsScreen extends ConsumerWidget {
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: FinPilotTheme.darkSurface,
-                    borderRadius: BorderRadius.circular(16),
+                    color: isDark ? FinPilotColors.darkSurface : FinPilotColors.lightSurface,
+                    borderRadius: BorderRadius.circular(CardDimensions.borderRadius),
                     border: Border.all(
-                      color: FinPilotTheme.primary.withValues(alpha: 0.4),
+                      color: primaryColor.withValues(alpha: isDark ? 0.4 : 0.5),
                       width: 1.5,
                     ),
                   ),
@@ -103,20 +100,20 @@ class SetupAccountsScreen extends ConsumerWidget {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: FinPilotTheme.primary.withValues(alpha: 0.1),
+                          color: primaryColor.withValues(alpha: isDark ? 0.18 : 0.12),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.add_rounded,
-                          color: FinPilotTheme.primary,
+                          color: primaryColor,
                           size: 20,
                         ),
                       ),
                       const SizedBox(width: 12),
-                      const Text(
+                      Text(
                         'Add Account',
                         style: TextStyle(
-                          color: FinPilotTheme.primary,
+                          color: primaryColor,
                           fontWeight: FontWeight.w700,
                           fontSize: 16,
                         ),
@@ -128,7 +125,7 @@ class SetupAccountsScreen extends ConsumerWidget {
 
               const Spacer(),
 
-              // Continue button — only enabled after at least one account
+              // Continue button
               accountsState.when(
                 loading: () => const SizedBox.shrink(),
                 error: (error, stackTrace) => const SizedBox.shrink(),
@@ -143,7 +140,7 @@ class SetupAccountsScreen extends ConsumerWidget {
                       onPressed: () => ref
                           .read(appStateProvider.notifier)
                           .accountsSetupComplete(),
-                      child: const Text('Continue to App'),
+                      child: const Text('Continue to App', style: TextStyle(fontWeight: FontWeight.w700)),
                     ),
                   );
                 },
