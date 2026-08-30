@@ -1,11 +1,11 @@
 # 🚀 FinPilot — Next-Gen Personal Finance & AI Copilot
 
 <p align="center">
-  <img src="screenshots/06_dashboard_cards_stack.png" width="280" alt="FinPilot Dashboard" />
+  <img src="screenshots/dashboard.png" width="280" alt="FinPilot Dashboard" />
   &nbsp;&nbsp;
-  <img src="screenshots/08_analytics_and_stats.png" width="280" alt="FinPilot Analytics" />
+  <img src="screenshots/statistics.png" width="280" alt="FinPilot Analytics" />
   &nbsp;&nbsp;
-  <img src="screenshots/10_ai_copilot_advisor.png" width="280" alt="FinPilot AI Copilot" />
+  <img src="screenshots/AI%20copilot.png" width="280" alt="FinPilot AI Copilot" />
 </p>
 
 <p align="center">
@@ -24,21 +24,21 @@
 
 ## 📸 App Screenshots & UI Gallery
 
-| 1. Welcome & Login | 2. 4-Digit PIN Security | 3. Account Setup |
+| 1. Welcome & Login | 2. 4-Digit PIN Security | 3. Add Account |
 |:---:|:---:|:---:|
-| <img src="screenshots/01_login_welcome.png" width="260" alt="Welcome Login" /> | <img src="screenshots/02_lock_pin.png" width="260" alt="PIN Lock" /> | <img src="screenshots/03_add_account_type.png" width="260" alt="Account Setup" /> |
+| <img src="screenshots/login%20page.png" width="260" alt="Login Page" /> | <img src="screenshots/pin%20entering%20page.png" width="260" alt="PIN Entering Page" /> | <img src="screenshots/add%20account.png" width="260" alt="Add Account" /> |
 
-| 4. Card Theme Selector | 5. Card Creation Preview | 6. 3D Card Stack Dashboard |
+| 4. Account Color & Themes | 5. Data Injecting & Card Ready | 6. 3D Card Stack Dashboard |
 |:---:|:---:|:---:|
-| <img src="screenshots/04_card_theme_customizer.png" width="260" alt="Theme Selector" /> | <img src="screenshots/05_card_ready_preview.png" width="260" alt="Card Preview" /> | <img src="screenshots/06_dashboard_cards_stack.png" width="260" alt="Dashboard" /> |
+| <img src="screenshots/account%20color.png" width="260" alt="Account Color" /> | <img src="screenshots/data%20injecting%20option.png" width="260" alt="Data Injecting Option" /> | <img src="screenshots/dashboard.png" width="260" alt="Dashboard" /> |
 
-| 7. Add Transaction | 8. Statistics & Analytics | 9. Calendar & Cashflow |
+| 7. Expense Adder | 8. Statistics & Insights | 9. Calendar Heatmap |
 |:---:|:---:|:---:|
-| <img src="screenshots/07_add_transaction_modal.png" width="260" alt="Add Transaction" /> | <img src="screenshots/08_analytics_and_stats.png" width="260" alt="Statistics Analytics" /> | <img src="screenshots/09_cashflow_calendar.png" width="260" alt="Calendar Cashflow" /> |
+| <img src="screenshots/expense%20adder.png" width="260" alt="Expense Adder" /> | <img src="screenshots/statistics.png" width="260" alt="Statistics" /> | <img src="screenshots/calender.png" width="260" alt="Calendar" /> |
 
 <p align="center">
   <b>10. FinPilot AI Wealth Advisor (Gemini Copilot)</b><br />
-  <img src="screenshots/10_ai_copilot_advisor.png" width="300" alt="Gemini Copilot Advisor" />
+  <img src="screenshots/AI%20copilot.png" width="300" alt="AI Copilot" />
 </p>
 
 ---
